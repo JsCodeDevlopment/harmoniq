@@ -4,7 +4,7 @@ import { API } from '@/constants/back-end';
 
 export type SongSearchResponse = {
   url: string;
-  name: string;
+  title: string;
   artist: string;
 };
 

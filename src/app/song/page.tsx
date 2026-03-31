@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef, Suspense } from "react";
+import { useEffect, useState, useMemo, Suspense, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { 
   ChevronLeft, 
@@ -9,9 +9,25 @@ import {
   Maximize2, 
   Plus, 
   Minus,
-  Loader2
+  Loader2,
+  Music,
+  LayoutGrid,
+  ArrowRight,
+  ArrowLeft,
+  Check,
+  ListMusic
 } from "lucide-react";
-import { getSong } from "@/lib/api";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { motion, AnimatePresence } from "framer-motion";
+import { useSetlistMock, useSetlistsMock } from "@/hooks/use-setlists-mock.hook";
 
 const NOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 
@@ -33,35 +49,83 @@ function transposeChord(chord: string, amount: number) {
   });
 }
 
-interface SongData {
-  title: string;
-  artist: string;
-  key: string;
-  content: string;
-  chords: string[];
-}
+import { useGetSongMock } from "@/hooks/use-songs-mock.hook";
+import { ChordDiagram } from "@/components/chord-diagram";
+// import { useGetSongQuery } from "@/http/hooks/songs/use-get-song.hook";
 
 function SongViewer() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const url = searchParams.get("url");
+  const url = searchParams.get("url") || "";
+  const setlistId = searchParams.get("setlistId");
+  const songIndexStr = searchParams.get("songIndex");
+  const songIndex = songIndexStr ? parseInt(songIndexStr) : -1;
 
-  const [song, setSong] = useState<SongData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  // Setlist context
+  const { setlist } = useSetlistMock(setlistId || "");
+  const { setlists = [] } = useSetlistsMock();
+
+  // const { song, isLoading: loading, isError } = useGetSongQuery({ url });
+  const { song, isLoading: loading, isError } = useGetSongMock(url);
+  
   const [transpose, setTranspose] = useState(0);
   const [autoScroll, setAutoScroll] = useState(false);
   const [scrollSpeed] = useState(1);
   const [performanceMode, setPerformanceMode] = useState(false);
-  
-  useEffect(() => {
-    if (url) {
-      loadSong(url);
+  const [showDiagrams, setShowDiagrams] = useState(false);
+  const [showSetlistSelector, setShowSetlistSelector] = useState(false);
+
+  const handleAddToSetlist = useCallback((targetSetlistId: number) => {
+    if (!song) return;
+    
+    const stored = localStorage.getItem("harmoniq_mock_setlists");
+    if (stored) {
+        const lists = JSON.parse(stored);
+        const idx = lists.findIndex((l: { id: number }) => l.id === targetSetlistId);
+        if (idx !== -1) {
+            // Check if song already exists in this setlist
+            const exists = lists[idx].songs.some((s: { url: string }) => s.url === url);
+            if (exists) {
+                alert("Esta música já está neste repertório.");
+                setShowSetlistSelector(false);
+                return;
+            }
+
+            const newSongId = Math.floor(Math.random() * 1000000); // Use random for ID to avoid Date.now lint
+            lists[idx].songs.push({
+                id: newSongId,
+                setlist_id: targetSetlistId,
+                title: song.title,
+                artist: song.artist,
+                url: url,
+                key: song.key,
+                order: lists[idx].songs.length
+            });
+            localStorage.setItem("harmoniq_mock_setlists", JSON.stringify(lists));
+            alert(`Música adicionada em "${lists[idx].title}"`);
+            setShowSetlistSelector(false);
+        }
     }
-  }, [url]);
+  }, [song, url]);
+
+  const goToNext = () => {
+    if (setlist && songIndex < setlist.songs.length - 1) {
+      const next = setlist.songs[songIndex + 1];
+      router.push(`/song?url=${encodeURIComponent(next.url)}&setlistId=${setlistId}&songIndex=${songIndex + 1}`);
+    }
+  };
+
+  const goToPrev = () => {
+    if (setlist && songIndex > 0) {
+      const prev = setlist.songs[songIndex - 1];
+      router.push(`/song?url=${encodeURIComponent(prev.url)}&setlistId=${setlistId}&songIndex=${songIndex - 1}`);
+    }
+  };
+  
+  const error = isError ? "Não foi possível carregar a cifra." : null;
 
   useEffect(() => {
-    let interval: any;
+    let interval: ReturnType<typeof setInterval>;
     if (autoScroll) {
       interval = setInterval(() => {
         window.scrollBy(0, scrollSpeed);
@@ -70,117 +134,438 @@ function SongViewer() {
     return () => clearInterval(interval);
   }, [autoScroll, scrollSpeed]);
 
-  async function loadSong(url: string) {
-    try {
-      setLoading(true);
-      const data = await getSong(url);
-      setSong(data);
-    } catch (err) {
-      setError("Não foi possível carregar a cifra.");
-    } finally {
-      setLoading(false);
+  const currentKey = transposeChord(song?.key || 'C', transpose);
+
+  const handleKeyChange = (newKey: string | null) => {
+    if (!newKey) return;
+    const original = song?.key || 'C';
+    let baseNote = original;
+    if (baseNote === 'Db') baseNote = 'C#';
+    if (baseNote === 'Eb') baseNote = 'D#';
+    if (baseNote === 'Gb') baseNote = 'F#';
+    if (baseNote === 'Ab') baseNote = 'G#';
+    if (baseNote === 'Bb') baseNote = 'A#';
+
+    const targetIndex = NOTES.indexOf(newKey);
+    const originalIndex = NOTES.indexOf(baseNote);
+    
+    if (targetIndex !== -1 && originalIndex !== -1) {
+      const diff = targetIndex - originalIndex;
+      setTranspose(diff);
     }
-  }
+  };
 
   const processedContent = song?.content ? song.content.replace(/<b>(.*?)<\/b>/g, (match: string, chord: string) => {
-    return `<span class="chord">${transposeChord(chord, transpose)}</span>`;
+    return `<span class="chord text-yellow-600 font-bold">${transposeChord(chord, transpose)}</span>`;
   }) : "";
+
+  const songContent = song?.content;
+  const uniqueChords = useMemo(() => {
+    if (!songContent) return [];
+    const matches = songContent.match(/<b>(.*?)<\/b>/g) || [];
+    const chords = matches.map(m => {
+        const chordName = m.replace(/<\/?b>/g, '');
+        return transposeChord(chordName, transpose);
+    });
+    return Array.from(new Set(chords));
+  }, [songContent, transpose]);
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <Loader2 className="w-10 h-10 text-yellow-500 animate-spin" />
+      <div className="min-h-screen bg-zinc-50 flex flex-col items-center justify-center gap-6">
+        <Loader2 className="w-10 h-10 text-yellow-500 animate-spin" strokeWidth={1.5} />
+        <p className="text-zinc-400 font-medium text-sm tracking-wide animate-pulse">Preparando sua cifra...</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-black flex flex-col items-center justify-center gap-4">
-        <p className="text-zinc-500">{error}</p>
-        <button onClick={() => router.back()} className="text-yellow-500 underline">Voltar</button>
+      <div className="min-h-screen bg-zinc-50 flex flex-col items-center justify-center gap-6 px-6 text-center">
+        <div className="w-16 h-16 rounded-2xl bg-zinc-200 flex items-center justify-center">
+            <Music className="w-8 h-8 text-zinc-400" />
+        </div>
+        <div className="space-y-1">
+            <h2 className="text-zinc-900 text-xl font-semibold">Falha ao carregar</h2>
+            <p className="text-zinc-500 text-sm max-w-xs">{error}</p>
+        </div>
+        <Button variant="outline" onClick={() => router.back()} className="rounded-lg border-zinc-200 text-zinc-600">
+          Voltar para a busca
+        </Button>
       </div>
     );
   }
 
   return (
-    <div className={`min-h-screen transition-all ${performanceMode ? 'bg-black px-4 py-8' : 'bg-zinc-950 pb-24'}`}>
+    <div className={cn(
+        "min-h-screen transition-colors duration-500 selection:bg-yellow-500/30",
+        performanceMode ? 'bg-black text-white' : 'bg-zinc-50 text-zinc-900 pb-32'
+    )}>
       
       {!performanceMode && (
-        <header className="sticky top-0 z-50 bg-zinc-950/80 backdrop-blur-md border-b border-zinc-900 px-6 py-4 flex items-center justify-between">
-          <button onClick={() => router.back()} className="p-2 hover:bg-zinc-900 rounded-full transition-colors">
-            <ChevronLeft className="w-6 h-6" />
-          </button>
-          <div className="text-center flex-1">
-            <h1 className="font-bold text-lg truncate px-4">{song?.title}</h1>
-            <p className="text-xs text-zinc-500 uppercase tracking-widest">{song?.artist}</p>
+        <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-zinc-200 transition-all duration-300">
+          <div className="max-w-4xl mx-auto px-4 md:px-6 py-3 md:py-4 flex items-center justify-between">
+            <button 
+                onClick={() => router.back()} 
+                className="p-2 hover:bg-zinc-100 rounded-lg transition-all text-zinc-400 hover:text-zinc-900"
+            >
+                <ChevronLeft className="w-5 h-5" />
+            </button>
+            <div className="text-center flex-1 px-2 md:px-4 overflow-hidden">
+                <div className="flex items-center justify-center gap-2">
+                    <h1 className="font-semibold text-base md:text-xl text-zinc-950 truncate tracking-tight">
+                        {song?.title}
+                    </h1>
+                    {localStorage.getItem(`song:${url}`) && (
+                        <Check className="w-3.5 h-3.5 text-green-500" strokeWidth={3} />
+                    )}
+                </div>
+                <p className="text-[9px] md:text-[11px] text-zinc-500 uppercase tracking-widest font-semibold mt-0.5 truncate">
+                    {song?.artist}
+                </p>
+            </div>
+            <div className="flex items-center gap-2 px-1">
+                {!setlistId && (
+                  <button 
+                      onClick={() => setShowSetlistSelector(!showSetlistSelector)} 
+                      className={cn(
+                          "p-2 rounded-lg transition-all",
+                          showSetlistSelector ? "bg-yellow-100 text-yellow-600" : "hover:bg-zinc-100 text-zinc-400 hover:text-zinc-900"
+                      )}
+                      title="Adicionar ao Repertório"
+                  >
+                      <ListMusic className="w-5 h-5" />
+                  </button>
+                )}
+                <button 
+                    onClick={() => setPerformanceMode(true)} 
+                    className="p-2 bg-zinc-100 hover:bg-zinc-200 rounded-lg transition-all text-zinc-600"
+                >
+                    <Maximize2 className="w-5 h-5" />
+                </button>
+            </div>
           </div>
-          <button onClick={() => setPerformanceMode(true)} className="p-2 hover:bg-zinc-900 rounded-full transition-colors">
-            <Maximize2 className="w-6 h-6 text-zinc-400" />
-          </button>
+          
+          <AnimatePresence>
+            {showSetlistSelector && (
+                <motion.div 
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="absolute right-6 top-16 w-64 bg-white border border-zinc-200 shadow-2xl rounded-2xl p-4 z-50"
+                >
+                    <h4 className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-3 px-1">Escolha um repertório</h4>
+                    <div className="flex flex-col gap-1 max-h-60 overflow-y-auto pr-1">
+                        {setlists.map(list => (
+                            <button
+                                key={list.id}
+                                onClick={() => handleAddToSetlist(list.id)}
+                                className="flex flex-col text-left p-2.5 hover:bg-zinc-50 rounded-xl transition-colors group"
+                            >
+                                <span className="font-bold text-sm text-zinc-900 group-hover:text-yellow-600 transition-colors">{list.title}</span>
+                                <span className="text-[10px] text-zinc-500 font-medium">{list.songs.length} músicas</span>
+                            </button>
+                        ))}
+                        {setlists.length === 0 && (
+                            <div className="py-6 text-center">
+                                <p className="text-xs text-zinc-400 mb-3">Nenhum repertório criado</p>
+                                <Button size="sm" variant="outline" className="h-7 text-[10px]" onClick={() => router.push("/setlists")}>Criar Novo</Button>
+                            </div>
+                        )}
+                    </div>
+                </motion.div>
+            )}
+          </AnimatePresence>
         </header>
       )}
 
-      <main className={`max-w-3xl mx-auto ${performanceMode ? 'mt-0' : 'mt-8 px-6'}`}>
+      <main className={cn(
+          "max-w-4xl mx-auto transition-all duration-500",
+          performanceMode ? 'mt-0 px-4 md:px-8' : 'mt-6 md:mt-12 px-4 md:px-6'
+      )}>
         {performanceMode && (
-          <div className="flex items-center justify-between mb-8 opacity-20 hover:opacity-100 transition-opacity">
-             <button onClick={() => setPerformanceMode(false)} className="text-zinc-500 flex items-center gap-2">
-               <ChevronLeft className="w-4 h-4" /> Sair do modo performance
+          <div className="fixed top-0 left-0 right-0 z-50 p-4 md:p-6 flex items-center justify-between bg-black/80 backdrop-blur-xl border-b border-white/5 opacity-0 hover:opacity-100 transition-opacity duration-300">
+             <button onClick={() => setPerformanceMode(false)} className="text-zinc-500 hover:text-white flex items-center gap-2 font-semibold text-[10px] md:text-xs uppercase tracking-wider transition-colors">
+               <ChevronLeft className="w-4 h-4" /> Sair
              </button>
-             <div className="flex items-center gap-4">
-               <span className="text-yellow-500 font-bold">{transpose !== 0 && (transpose > 0 ? `+${transpose}` : transpose)}</span>
-               <div className="flex gap-2">
-                 <button onClick={() => setTranspose(t => t - 1)} className="p-1 border border-zinc-800 rounded"><Minus className="w-3 h-3"/></button>
-                 <button onClick={() => setTranspose(t => t + 1)} className="p-1 border border-zinc-800 rounded"><Plus className="w-3 h-3"/></button>
-               </div>
+             <div className="flex items-center gap-4 md:gap-8">
+               <button 
+                 onClick={() => setShowDiagrams(!showDiagrams)}
+                 className={cn(
+                   "p-2 rounded-lg transition-all",
+                   showDiagrams ? "text-yellow-500 bg-white/5" : "text-zinc-500 hover:text-white"
+                 )}
+                 title={showDiagrams ? "Esconder Diagramas" : "Mostrar Diagramas"}
+               >
+                 <LayoutGrid className="w-5 h-5" />
+               </button>
+               <div className="flex items-center bg-white/5 border border-white/10 rounded-xl p-1 shadow-2xl backdrop-blur-md">
+                  <Button 
+                    variant="yellow" 
+                    size="icon-xs" 
+                    onClick={() => setTranspose(t => t - 1)}
+                    className="rounded-lg size-8 md:size-9 shadow-lg shadow-yellow-500/20 active:scale-90 transition-transform"
+                  >
+                    <Minus className="w-4 h-4" />
+                  </Button>
+                  <div className="flex flex-col items-center px-4 md:px-6 min-w-[60px] md:min-w-[80px]">
+                    <span className="text-[8px] md:text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-0.5 opacity-60">Tom</span>
+                    <Select value={currentKey} onValueChange={handleKeyChange}>
+                      <SelectTrigger className="h-6 md:h-7 border-none bg-transparent hover:bg-white/5 font-bold text-yellow-500 text-lg md:text-xl p-0 pr-4 shadow-none focus:ring-0">
+                        <SelectValue>{currentKey}</SelectValue>
+                      </SelectTrigger>
+                      <SelectContent className="bg-zinc-900 border-white/10 text-white">
+                        {NOTES.map(note => (
+                          <SelectItem key={note} value={note} className="focus:bg-yellow-500/10 focus:text-yellow-500 cursor-pointer">{note}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <Button 
+                    variant="yellow" 
+                    size="icon-xs" 
+                    onClick={() => setTranspose(t => t + 1)}
+                    className="rounded-lg size-8 md:size-9 shadow-lg shadow-yellow-500/20 active:scale-90 transition-transform"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </Button>
+                </div>
+               {setlist && (
+                 <div className="flex items-center gap-2 border-l border-white/10 pl-4 ml-2">
+                   <Button 
+                     variant="ghost" 
+                     size="icon-sm" 
+                     onClick={goToPrev}
+                     disabled={songIndex <= 0}
+                     className="text-zinc-500 hover:text-white"
+                   >
+                     <ArrowLeft className="w-5 h-5" />
+                   </Button>
+                   <div className="flex flex-col items-center justify-center min-w-[32px]">
+                       <span className="text-[10px] font-bold text-yellow-500 tabular-nums leading-none">{songIndex + 1}</span>
+                       <span className="text-[7px] font-bold text-zinc-600 uppercase tracking-tighter leading-none mt-0.5">de {setlist.songs.length}</span>
+                   </div>
+                   <Button 
+                     variant="ghost" 
+                     size="icon-sm" 
+                     onClick={goToNext}
+                     disabled={songIndex >= setlist.songs.length - 1}
+                     className="text-zinc-500 hover:text-white"
+                   >
+                     <ArrowRight className="w-5 h-5" />
+                   </Button>
+                 </div>
+               )}
              </div>
           </div>
         )}
 
-        <div className="mb-6 flex flex-wrap gap-4 items-center justify-between">
+        <div className={cn(
+            "mb-8 md:mb-12 transition-all duration-700",
+            performanceMode ? "pt-20 md:pt-24" : "block"
+        )}>
            {!performanceMode && (
-             <div className="flex gap-2">
-               <div className="bg-zinc-900 rounded-xl flex items-center border border-zinc-800">
-                  <button onClick={() => setTranspose(t => t - 1)} className="p-3 text-zinc-400 hover:text-white"><Minus className="w-4 h-4" /></button>
-                  <span className="px-4 font-bold min-w-[3rem] text-center border-x border-zinc-800">Tom: {transpose === 0 ? song?.key : transposeChord(song?.key || 'C', transpose)}</span>
-                  <button onClick={() => setTranspose(t => t + 1)} className="p-3 text-zinc-400 hover:text-white"><Plus className="w-4 h-4" /></button>
-               </div>
-               
-               <button 
-                onClick={() => setAutoScroll(!autoScroll)}
-                className={`flex items-center gap-2 px-5 rounded-xl border transition-all ${autoScroll ? 'bg-yellow-500 border-yellow-500 text-black font-bold' : 'bg-zinc-900 border-zinc-800 text-zinc-400'}`}
-               >
-                 {autoScroll ? <Pause className="w-5 h-5 fill-current" /> : <Play className="w-5 h-5 fill-current" />}
-                 {autoScroll ? 'Pausar' : 'Auto Scroll'}
-               </button>
+             <div className="flex flex-wrap gap-4 items-center justify-between p-1.5 md:p-2 rounded-xl md:rounded-2xl bg-white border border-zinc-200 pl-4 md:pl-6 shadow-sm">
+                <div className="flex items-center gap-4 md:gap-8">
+                    <button 
+                      onClick={() => setShowDiagrams(!showDiagrams)}
+                      className={cn(
+                        "p-2 rounded-lg transition-all flex items-center gap-2 font-semibold text-[10px] uppercase tracking-wider",
+                        showDiagrams ? "text-yellow-600 bg-yellow-50" : "text-zinc-400 hover:text-zinc-900"
+                      )}
+                    >
+                      <LayoutGrid className="size-4" />
+                      <span className="hidden xs:inline">{showDiagrams ? 'Ocultar Diagramas' : 'Ver Diagramas'}</span>
+                    </button>
+                    <div className="w-px h-6 bg-zinc-100" />
+                    <div className="flex flex-col">
+                        <span className="text-[9px] md:text-[10px] font-semibold text-zinc-400 uppercase tracking-wider mb-0.5 whitespace-nowrap">Tom Org.</span>
+                        <span className="text-zinc-900 font-semibold text-sm md:text-base">{song?.key}</span>
+                    </div>
+                    <div className="w-px h-6 md:h-8 bg-zinc-100" />
+                    <div className="flex items-center bg-zinc-50 dark:bg-white/5 border border-zinc-200 dark:border-white/10 rounded-xl p-0.5 md:p-1 shadow-sm transition-all hover:border-zinc-300 dark:hover:border-white/20">
+                        <Button 
+                          variant="yellow" 
+                          size="icon-xs" 
+                          onClick={() => setTranspose(t => t - 1)}
+                          className="rounded-lg size-7 md:size-8 shadow-md shadow-yellow-500/10 active:scale-95 transition-transform"
+                        >
+                          <Minus className="size-3.5 md:size-4" />
+                        </Button>
+                        <div className="flex flex-col items-center px-3 md:px-5 min-w-[70px] md:min-w-[90px]">
+                            <span className="text-[7.5px] md:text-[9px] font-bold text-zinc-400 uppercase tracking-widest mb-0.5 whitespace-nowrap opacity-60">Tonalidade</span>
+                            <Select value={currentKey} onValueChange={handleKeyChange}>
+                              <SelectTrigger className="h-5 md:h-6 border-none bg-transparent hover:bg-zinc-100 dark:hover:bg-white/5 font-bold text-zinc-950 dark:text-yellow-500 text-sm md:text-base p-0 pr-3 shadow-none focus:ring-0 transition-colors">
+                                <SelectValue>{currentKey}</SelectValue>
+                              </SelectTrigger>
+                              <SelectContent className="bg-white dark:bg-zinc-900 border-zinc-200 dark:border-white/10">
+                                {NOTES.map(note => (
+                                  <SelectItem key={note} value={note} className="text-zinc-900 dark:text-white focus:bg-yellow-500/10 focus:text-yellow-600 dark:focus:text-yellow-500 cursor-pointer">{note}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                        </div>
+                        <Button 
+                          variant="yellow" 
+                          size="icon-xs" 
+                          onClick={() => setTranspose(t => t + 1)}
+                          className="rounded-lg size-7 md:size-8 shadow-md shadow-yellow-500/10 active:scale-95 transition-transform"
+                        >
+                          <Plus className="size-3.5 md:size-4" />
+                        </Button>
+                    </div>
+
+                    {setlist && (
+                        <div className="hidden md:flex items-center gap-2 p-1 rounded-full bg-zinc-50 border border-zinc-100 ml-2">
+                            <Button variant="ghost" size="icon-sm" onClick={goToPrev} disabled={songIndex <= 0} className="rounded-full size-7">
+                                <ArrowLeft className="w-3.5 h-3.5" />
+                            </Button>
+                            <span className="text-[9px] font-bold text-zinc-400 tabular-nums px-1">{songIndex + 1}/{setlist.songs.length}</span>
+                            <Button variant="ghost" size="icon-sm" onClick={goToNext} disabled={songIndex >= setlist.songs.length - 1} className="rounded-full size-7">
+                                <ArrowRight className="w-3.5 h-3.5" />
+                            </Button>
+                        </div>
+                    )}
+                </div>
+                
+                <button 
+                  onClick={() => setAutoScroll(!autoScroll)}
+                  className={cn(
+                      "flex items-center gap-2 px-4 md:px-6 py-2.5 md:py-3 rounded-lg md:rounded-xl transition-all duration-300 font-semibold uppercase tracking-wider text-[10px] md:text-xs",
+                      autoScroll ? 'bg-yellow-500 text-black shadow-lg shadow-yellow-500/20' : 'bg-zinc-100 text-zinc-500 hover:bg-zinc-200'
+                  )}
+                >
+                  {autoScroll ? <Pause className="w-3 h-3 md:w-4 md:h-4 fill-current" /> : <Play className="w-3 h-3 md:w-4 md:h-4 fill-current" />}
+                  <span className="hidden xs:inline">{autoScroll ? 'Pausar' : 'Auto Scroll'}</span>
+                  <span className="xs:hidden">{autoScroll ? 'Pausar' : 'Scroll'}</span>
+                </button>
              </div>
            )}
         </div>
 
-        <div 
-          className={`cifra-content ${performanceMode ? 'text-2xl leading-relaxed' : 'text-lg'}`}
+        <AnimatePresence>
+          {showDiagrams && uniqueChords.length > 0 && (
+            <motion.div 
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="overflow-hidden mb-8"
+            >
+              <div className={cn(
+                "p-4 md:p-6 rounded-2xl border transition-colors",
+                performanceMode ? "bg-zinc-900 border-white/5" : "bg-white border-zinc-200 shadow-sm"
+              )}>
+                <h3 className={cn(
+                  "text-[10px] font-bold uppercase tracking-widest mb-6 block",
+                  performanceMode ? "text-zinc-500" : "text-zinc-400"
+                )}>
+                  Diagramas da Música
+                </h3>
+                <div className="flex flex-wrap gap-6 md:gap-8">
+                  {uniqueChords.map(chord => (
+                    <ChordDiagram key={chord} name={chord} dark={performanceMode} />
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.8 }}
+          className={cn(
+              "cifra-content transition-all duration-500 overflow-x-auto pb-8",
+              performanceMode 
+                ? 'text-2xl sm:text-3xl md:text-4xl leading-[2.2] md:leading-[2.5] tracking-wide font-medium' 
+                : 'text-[15px] sm:text-lg md:text-xl leading-[2.2] text-zinc-800'
+          )}
+          style={{ whiteSpace: 'pre', fontFamily: 'monospace' }}
           dangerouslySetInnerHTML={{ __html: processedContent }} 
         />
         
-        <div className="h-40" />
+        <div className="h-48" />
       </main>
 
       {!performanceMode && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-zinc-900/90 backdrop-blur-lg border border-zinc-800 rounded-2xl px-6 py-4 flex items-center gap-8 shadow-2xl">
-           <div className="flex flex-col items-center gap-1 cursor-pointer" onClick={() => setAutoScroll(!autoScroll)}>
-              {autoScroll ? <Pause className="text-yellow-500" /> : <Play className="text-zinc-500" />}
-              <span className="text-[10px] uppercase font-bold text-zinc-500">Scroll</span>
-           </div>
-           <div className="w-px h-8 bg-zinc-800" />
-           <div className="flex flex-col items-center gap-1">
-              <span className="text-yellow-500 font-bold text-lg">{transpose > 0 ? `+${transpose}` : (transpose < 0 ? transpose : '0')}</span>
-              <span className="text-[10px] uppercase font-bold text-zinc-500">Transpose</span>
-           </div>
-           <div className="w-px h-8 bg-zinc-800" />
-           <div className="flex flex-col items-center gap-1 cursor-pointer" onClick={() => setPerformanceMode(true)}>
-              <Maximize2 className="text-zinc-500 hover:text-white" />
-              <span className="text-[10px] uppercase font-bold text-zinc-500">Live</span>
-           </div>
+        <div className="fixed bottom-6 md:bottom-8 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur-xl rounded-xl md:rounded-2xl px-6 md:px-8 py-3 md:py-5 flex items-center gap-6 md:gap-10 shadow-2xl border border-zinc-200 z-50 w-[90%] md:w-auto justify-evenly md:justify-start">
+           <button 
+                className="group flex flex-col items-center gap-1 transition-all active:scale-95 text-zinc-400 hover:text-zinc-900" 
+                onClick={() => setAutoScroll(!autoScroll)}
+            >
+              <div className={cn(
+                  "w-9 h-9 md:w-10 md:h-10 rounded-lg md:rounded-xl flex items-center justify-center transition-all duration-300",
+                  autoScroll ? "bg-yellow-500 text-black shadow-lg shadow-yellow-500/20" : "bg-zinc-100 group-hover:bg-zinc-200"
+              )}>
+                {autoScroll ? <Pause className="w-4 h-4 md:w-5 md:h-5 fill-current" /> : <Play className="w-4 h-4 md:w-5 md:h-5 fill-current" />}
+              </div>
+              <span className="text-[9px] md:text-[10px] uppercase font-bold tracking-wider">Scroll</span>
+           </button>
+           
+           <div className="w-px h-8 md:h-10 bg-zinc-100" />
+           
+            <div className="flex items-center bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-white/10 rounded-2xl p-1 shadow-inner ring-1 ring-zinc-900/5">
+                <Button 
+                  variant="yellow" 
+                  size="icon-xs" 
+                  onClick={() => setTranspose(t => t - 1)}
+                  className="rounded-xl size-8 md:size-10 shadow-lg shadow-yellow-500/20 active:scale-95 transition-transform"
+                >
+                  <Minus className="w-4 h-4" />
+                </Button>
+                <div className="flex flex-col items-center px-4 md:px-6 min-w-[65px] md:min-w-[85px]">
+                    <Select value={currentKey} onValueChange={handleKeyChange}>
+                      <SelectTrigger className="h-6 md:h-8 border-none bg-transparent font-bold text-zinc-950 dark:text-yellow-500 text-sm md:text-lg p-0 pr-4 shadow-none">
+                        <SelectValue>{currentKey}</SelectValue>
+                      </SelectTrigger>
+                      <SelectContent className="bg-white dark:bg-zinc-900 border-zinc-200 dark:border-white/10">
+                        {NOTES.map(note => (
+                          <SelectItem key={note} value={note} className="cursor-pointer focus:bg-yellow-500/10 focus:text-yellow-600 dark:focus:text-yellow-500">{note}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <span className="text-[7px] md:text-[9px] uppercase font-bold tracking-widest text-zinc-400 mt-0.5 opacity-60">Tom Atual</span>
+                </div>
+                <Button 
+                  variant="yellow" 
+                  size="icon-xs" 
+                  onClick={() => setTranspose(t => t + 1)}
+                  className="rounded-xl size-8 md:size-10 shadow-lg shadow-yellow-500/20 active:scale-95 transition-transform"
+                >
+                  <Plus className="w-4 h-4" />
+                </Button>
+            </div>
+           
+           <div className="w-px h-8 md:h-10 bg-zinc-100" />
+           
+           <button 
+                className={cn(
+                  "group flex flex-col items-center gap-1 transition-all active:scale-95",
+                  showDiagrams ? "text-yellow-600" : "text-zinc-400 hover:text-zinc-900"
+                )}
+                onClick={() => setShowDiagrams(!showDiagrams)}
+            >
+              <div className={cn(
+                  "w-9 h-9 md:w-10 md:h-10 rounded-lg md:rounded-xl flex items-center justify-center transition-all duration-300",
+                  showDiagrams ? "bg-yellow-500/10" : "bg-zinc-100 group-hover:bg-zinc-200"
+              )}>
+                <LayoutGrid className="w-4 h-4 md:w-5 md:h-5" />
+              </div>
+              <span className="text-[9px] md:text-[10px] uppercase font-bold tracking-wider">Shapes</span>
+           </button>
+           
+           <div className="w-px h-8 md:h-10 bg-zinc-100" />
+           
+           <button 
+                className="group flex flex-col items-center gap-1 transition-all active:scale-95 text-zinc-400 hover:text-zinc-900" 
+                onClick={() => setPerformanceMode(true)}
+            >
+              <div className="w-9 h-9 md:w-10 md:h-10 rounded-lg md:rounded-xl bg-zinc-100 group-hover:bg-zinc-200 flex items-center justify-center transition-all">
+                <Maximize2 className="w-4 h-4 md:w-5 md:h-5" />
+              </div>
+              <span className="text-[9px] md:text-[10px] uppercase font-bold tracking-wider">Live</span>
+           </button>
         </div>
       )}
     </div>

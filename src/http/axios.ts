@@ -2,7 +2,7 @@ import axios from 'axios';
 import { TokenHelper } from '../helpers/token.helper';
 import { API } from '../constants/back-end';
 
-const baseURL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/api/v1';
+const baseURL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 const defaultOptions = {
   baseURL,

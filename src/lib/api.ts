@@ -1,13 +1,18 @@
-export const API_BASE = "http://localhost:3001/api/v1";
+import axios from 'axios';
 
-export async function searchSongs(query: string) {
-  const res = await fetch(`${API_BASE}/songs/search?q=${encodeURIComponent(query)}`);
-  if (!res.ok) throw new Error("Falha na busca");
-  return res.json();
-}
+const api = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
 
-export async function getSong(url: string) {
-  const res = await fetch(`${API_BASE}/songs/song?url=${encodeURIComponent(url)}`);
-  if (!res.ok) throw new Error("Falha ao carregar cifra");
-  return res.json();
-}
+api.interceptors.request.use((config) => {
+  const token = typeof window !== 'undefined' ? localStorage.getItem('harmoniq_auth_token') : null;
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+export default api;
