@@ -1,18 +1,28 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ChevronLeft, Loader2, Music, ListMusic, Plus, Share2, Trash2, GripVertical, Check } from "lucide-react";
+import { ChevronLeft, Loader2, Music, ListMusic, Plus, Share2, Trash2, GripVertical, Check, Edit2 } from "lucide-react";
 import { useRouter, useParams } from "next/navigation";
 import { Suspense, useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import { useSetlistMock } from "@/hooks/use-setlists-mock.hook";
+// import { useSetlistMock } from "@/hooks/use-setlists-mock.hook";
+import { useSetlist } from "@/hooks/use-setlists.hook";
 
 function SetlistDetails() {
   const router = useRouter();
   const { id } = useParams();
-  const { setlist, isLoading: loading, removeSong, togglePublic } = useSetlistMock(id as string);
+  // const { setlist, isLoading: loading, removeSong, togglePublic } = useSetlistMock(id as string);
+  const { setlist, isLoading: loading, removeSong, togglePublic, renameSetlist } = useSetlist(id as string);
   const [copied, setCopied] = useState(false);
+
+  const handleRename = async () => {
+    if (!setlist) return;
+    const newTitle = prompt("Digite o novo nome para esta setlist:", setlist.title);
+    if (newTitle && newTitle !== setlist.title) {
+        await renameSetlist(newTitle);
+    }
+  };
 
   const handleShare = () => {
     if (!setlist) return;
@@ -68,8 +78,17 @@ function SetlistDetails() {
             >
               <ChevronLeft className="w-5 h-5 text-zinc-400 group-hover:text-white transition-colors" />
             </button>
-            <div className="flex flex-col">
-              <h1 className="text-xl font-bold tracking-tight">{setlist.title}</h1>
+            <div className="flex flex-col group/title">
+              <div className="flex items-center gap-2">
+                <h1 className="text-xl font-bold tracking-tight">{setlist.title}</h1>
+                <button 
+                    onClick={handleRename}
+                    className="p-1 hover:bg-white/5 rounded text-zinc-500 hover:text-white transition-opacity md:opacity-0 group-hover/title:opacity-100"
+                    title="Renomear"
+                >
+                    <Edit2 className="w-3.5 h-3.5" />
+                </button>
+              </div>
               <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">{setlist.songs.length} músicas</span>
             </div>
           </div>
@@ -167,7 +186,7 @@ function SetlistDetails() {
                 <Button 
                     variant={setlist.is_public ? "yellow" : "outline"} 
                     className={setlist.is_public ? "rounded-full h-8 text-[10px]" : "rounded-full h-8 text-[10px] border-white/10 text-zinc-400"}
-                    onClick={togglePublic}
+                    onClick={() => togglePublic()}
                 >
                     {setlist.is_public ? "Público" : "Privado"}
                 </Button>

@@ -1,13 +1,22 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ChevronLeft, Loader2, Music, PlayCircle, Search, ListMusic } from "lucide-react";
+import {
+  ChevronLeft,
+  ListMusic,
+  Loader2,
+  Music,
+  PlayCircle,
+  Search,
+} from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useState, useCallback } from "react";
+import { Suspense, useCallback, useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import { useSearchSongsMock } from "@/hooks/use-songs-mock.hook";
-import { useSetlistsMock } from "@/hooks/use-setlists-mock.hook";
+// import { useSearchSongsMock } from "@/hooks/use-songs-mock.hook";
+// import { useSetlistsMock } from "@/hooks/use-setlists-mock.hook";
+import { useSetlists } from "@/hooks/use-setlists.hook";
+import { useSearchSongs } from "@/hooks/use-songs.hook";
 import { cn } from "@/lib/utils";
 import { AnimatePresence } from "framer-motion";
 
@@ -17,43 +26,45 @@ function SearchResults() {
   const initialQuery = searchParams.get("q") || "";
 
   const [query, setQuery] = useState(initialQuery);
-  const { songs = [], isLoading: loading } = useSearchSongsMock(initialQuery);
-  const { setlists = [] } = useSetlistsMock();
-  const [activeSetlistSelector, setActiveSetlistSelector] = useState<number | null>(null);
+  // const { songs = [], isLoading: loading } = useSearchSongsMock(initialQuery);
+  // const { setlists = [] } = useSetlistsMock();
+  const { data: songs = [], isLoading: loading } = useSearchSongs(initialQuery);
+  const { setlists = [], addSongToSetlist } = useSetlists();
+  const [activeSetlistSelector, setActiveSetlistSelector] = useState<
+    number | null
+  >(null);
 
   async function handleSearch(q: string) {
     if (!q) return;
     router.push(`/search?q=${encodeURIComponent(q)}`);
   }
 
-  const handleAddToSetlist = useCallback((song: { title: string; artist: string; url: string }, targetSetlistId: number) => {
-    const stored = localStorage.getItem("harmoniq_mock_setlists");
-    if (stored) {
-        const lists = JSON.parse(stored);
-        const idx = lists.findIndex((l: { id: number }) => l.id === targetSetlistId);
-        if (idx !== -1) {
-            const exists = lists[idx].songs.some((s: { url: string }) => s.url === song.url);
-            if (exists) {
-                alert("Esta música já está neste repertório.");
-                setActiveSetlistSelector(null);
-                return;
-            }
-
-            lists[idx].songs.push({
-                id: Math.floor(Math.random() * 1000000),
-                setlist_id: targetSetlistId,
-                title: song.title,
-                artist: song.artist,
-                url: song.url,
-                key: "C", // Default key for search results
-                order: lists[idx].songs.length
-            });
-            localStorage.setItem("harmoniq_mock_setlists", JSON.stringify(lists));
-            alert(`Música adicionada em "${lists[idx].title}"`);
-            setActiveSetlistSelector(null);
-        }
-    }
-  }, []);
+  const handleAddToSetlist = useCallback(
+    async (
+      song: { title: string; artist: string; url: string },
+      targetSetlistId: number,
+    ) => {
+      try {
+        await addSongToSetlist({
+          setlistId: targetSetlistId,
+          song: {
+            title: song.title,
+            artist: song.artist,
+            url: song.url,
+            key: "C", // Tom padrão para novos itens vindo da busca
+          },
+        });
+        alert(`Música adicionada com sucesso!`);
+        setActiveSetlistSelector(null);
+      } catch (err: unknown) {
+        const msg =
+          (err as any).response?.data?.message ||
+          "Não foi possível adicionar a música";
+        alert(msg);
+      }
+    },
+    [addSongToSetlist],
+  );
 
   return (
     <div className="min-h-screen bg-black text-white selection:bg-yellow-500/30">
@@ -77,12 +88,17 @@ function SearchResults() {
               onKeyDown={(e) => e.key === "Enter" && handleSearch(query)}
             />
           </div>
-          
-          <div className="md:flex items-center gap-2.5 cursor-pointer hidden" onClick={() => router.push('/')}>
+
+          <div
+            className="md:flex items-center gap-2.5 cursor-pointer hidden"
+            onClick={() => router.push("/")}
+          >
             <div className="w-8 h-8 bg-yellow-500 rounded-lg flex items-center justify-center">
               <Music className="w-4 h-4 text-black" strokeWidth={2.5} />
             </div>
-            <span className="text-lg font-bold font-outfit tracking-tight">Harmoniq</span>
+            <span className="text-lg font-bold font-outfit tracking-tight">
+              Harmoniq
+            </span>
           </div>
         </div>
       </header>
@@ -90,18 +106,25 @@ function SearchResults() {
       <main className="max-w-4xl mx-auto px-6 py-12">
         <div className="flex items-center justify-between mb-10">
           <h2 className="text-zinc-500 text-[12px] font-semibold uppercase tracking-wider">
-            {loading ? "Buscando..." : `${songs.length} resultados encontrados`}
+            {loading
+              ? "Buscando..."
+              : `${songs?.length} resultados encontrados`}
           </h2>
         </div>
 
         {loading ? (
           <div className="flex flex-col items-center justify-center py-40 gap-6">
-            <Loader2 className="w-10 h-10 text-yellow-500 animate-spin" strokeWidth={1.5} />
-            <p className="text-zinc-600 text-sm font-medium animate-pulse">Sincronizando com a nuvem...</p>
+            <Loader2
+              className="w-10 h-10 text-yellow-500 animate-spin"
+              strokeWidth={1.5}
+            />
+            <p className="text-zinc-600 text-sm font-medium animate-pulse">
+              Sincronizando com a nuvem...
+            </p>
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-3">
-            {songs.length > 0 ? (
+            {songs?.length > 0 ? (
               songs.map((song, i) => (
                 <div key={i} className="relative">
                   <motion.div
@@ -127,53 +150,77 @@ function SearchResults() {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                       <button 
-                         onClick={(e) => {
-                           e.stopPropagation();
-                           setActiveSetlistSelector(activeSetlistSelector === i ? null : i);
-                         }}
-                         className={cn(
-                           "p-2.5 rounded-lg transition-all",
-                           activeSetlistSelector === i ? "bg-yellow-500 text-black" : "text-zinc-500 hover:text-white hover:bg-white/5"
-                         )}
-                       >
-                         <ListMusic className="w-5 h-5" />
-                       </button>
-                       <div className="md:flex items-center gap-4 opacity-0 group-hover:opacity-100 transition-all hidden ml-2">
-                         <span className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">Toque</span>
-                         <PlayCircle className="w-6 h-6 text-yellow-500" strokeWidth={2} />
-                       </div>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setActiveSetlistSelector(
+                            activeSetlistSelector === i ? null : i,
+                          );
+                        }}
+                        className={cn(
+                          "p-2.5 rounded-lg transition-all",
+                          activeSetlistSelector === i
+                            ? "bg-yellow-500 text-black"
+                            : "text-zinc-500 hover:text-white hover:bg-white/5",
+                        )}
+                      >
+                        <ListMusic className="w-5 h-5" />
+                      </button>
+                      <div className="md:flex items-center gap-4 opacity-0 group-hover:opacity-100 transition-all hidden ml-2">
+                        <span className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">
+                          Toque
+                        </span>
+                        <PlayCircle
+                          className="w-6 h-6 text-yellow-500"
+                          strokeWidth={2}
+                        />
+                      </div>
                     </div>
                   </motion.div>
 
                   <AnimatePresence>
                     {activeSetlistSelector === i && (
-                        <motion.div 
-                            initial={{ opacity: 0, scale: 0.95, y: -10 }}
-                            animate={{ opacity: 1, scale: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.95, y: -10 }}
-                            className="absolute right-0 top-full mt-2 w-64 bg-zinc-900 border border-white/10 shadow-2xl rounded-2xl p-4 z-50"
-                        >
-                            <h4 className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-3 px-1">Escolha um repertório</h4>
-                            <div className="flex flex-col gap-1 max-h-60 overflow-y-auto pr-1">
-                                {setlists.map(list => (
-                                    <button
-                                        key={list.id}
-                                        onClick={() => handleAddToSetlist(song, list.id)}
-                                        className="flex flex-col text-left p-2.5 hover:bg-white/5 rounded-xl transition-colors group"
-                                    >
-                                        <span className="font-bold text-sm text-zinc-100 group-hover:text-yellow-500 transition-colors">{list.title}</span>
-                                        <span className="text-[10px] text-zinc-500 font-medium">{list.songs.length} músicas</span>
-                                    </button>
-                                ))}
-                                {setlists.length === 0 && (
-                                    <div className="py-6 text-center">
-                                        <p className="text-xs text-zinc-400 mb-3">Nenhum repertório criado</p>
-                                        <Button size="sm" variant="outline" className="h-7 text-[10px] border-white/10" onClick={() => router.push("/setlists")}>Criar Novo</Button>
-                                    </div>
-                                )}
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                        className="absolute right-0 top-full mt-2 w-64 bg-zinc-900 border border-white/10 shadow-2xl rounded-2xl p-4 z-50"
+                      >
+                        <h4 className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-3 px-1">
+                          Escolha um repertório
+                        </h4>
+                        <div className="flex flex-col gap-1 max-h-60 overflow-y-auto pr-1">
+                          {setlists.map((list) => (
+                            <button
+                              key={list.id}
+                              onClick={() => handleAddToSetlist(song, list.id)}
+                              className="flex flex-col text-left p-2.5 hover:bg-white/5 rounded-xl transition-colors group"
+                            >
+                              <span className="font-bold text-sm text-zinc-100 group-hover:text-yellow-500 transition-colors">
+                                {list.title}
+                              </span>
+                              <span className="text-[10px] text-zinc-500 font-medium">
+                                {list.songs.length} músicas
+                              </span>
+                            </button>
+                          ))}
+                          {setlists.length === 0 && (
+                            <div className="py-6 text-center">
+                              <p className="text-xs text-zinc-400 mb-3">
+                                Nenhum repertório criado
+                              </p>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-7 text-[10px] border-white/10"
+                                onClick={() => router.push("/setlists")}
+                              >
+                                Criar Novo
+                              </Button>
                             </div>
-                        </motion.div>
+                          )}
+                        </div>
+                      </motion.div>
                     )}
                   </AnimatePresence>
                 </div>
@@ -184,8 +231,12 @@ function SearchResults() {
                   <Music className="w-8 h-8 text-zinc-800" strokeWidth={1} />
                 </div>
                 <div className="space-y-1">
-                  <p className="text-zinc-400 text-lg font-semibold">Nenhum resultado</p>
-                  <p className="text-zinc-600 text-sm">Tente buscar por termos diferentes.</p>
+                  <p className="text-zinc-400 text-lg font-semibold">
+                    Nenhum resultado
+                  </p>
+                  <p className="text-zinc-600 text-sm">
+                    Tente buscar por termos diferentes.
+                  </p>
                 </div>
                 <Button
                   variant="outline"

@@ -8,13 +8,15 @@ import { useRouter } from "next/navigation";
 import { Suspense } from "react";
 
 import { Button } from "@/components/ui/button";
-import { useSetlistsMock } from "@/hooks/use-setlists-mock.hook";
+// import { useSetlistsMock } from "@/hooks/use-setlists-mock.hook";
+import { useSetlists } from "@/hooks/use-setlists.hook";
 import { useAuth } from "@/hooks/use-auth.hook";
 
 function SetlistDashboard() {
   const router = useRouter();
-  const { user, isAuthenticated, isInitializing } = useAuth();
-  const { setlists = [], isLoading: loading, createSetlist, deleteSetlist } = useSetlistsMock();
+  const { isAuthenticated, isInitializing } = useAuth();
+  // const { setlists = [], isLoading: loading, createSetlist, deleteSetlist } = useSetlistsMock();
+  const { setlists = [], isLoading: loading, createSetlist, deleteSetlist } = useSetlists();
 
   if (!isAuthenticated && !isInitializing) {
     return (
@@ -49,11 +51,15 @@ function SetlistDashboard() {
     );
   }
 
-  const handleCreate = () => {
+  const handleCreate = async () => {
     const title = prompt("Digite o nome da sua nova setlist:");
     if (title) {
-      const newList = createSetlist(title);
-      router.push(`/setlists/${newList.id}`);
+      try {
+        const newList = await createSetlist(title);
+        router.push(`/setlists/${newList.id}`);
+      } catch (error) {
+        console.error("Failed to create setlist:", error);
+      }
     }
   };
 

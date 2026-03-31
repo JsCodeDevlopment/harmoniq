@@ -33,6 +33,14 @@ export function Navbar() {
           <a href="#showcase" className="hover:text-white transition-colors">
             Visualizador
           </a>
+          {isAuthenticated && (
+            <button 
+              onClick={() => router.push("/setlists")} 
+              className="hover:text-white transition-colors cursor-pointer"
+            >
+              Meus Repertórios
+            </button>
+          )}
           <a href="#about" className="hover:text-white transition-colors">
             Sobre
           </a>
@@ -93,6 +101,17 @@ export function Navbar() {
           >
             Visualizador
           </a>
+          {isAuthenticated && (
+            <button
+              onClick={() => {
+                setIsMenuOpen(false);
+                router.push("/setlists");
+              }}
+              className="text-sm font-medium text-zinc-400 text-left"
+            >
+              Meus Repertórios
+            </button>
+          )}
           <a
             href="#about"
             onClick={() => setIsMenuOpen(false)}

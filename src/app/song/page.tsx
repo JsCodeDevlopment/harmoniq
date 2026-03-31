@@ -27,10 +27,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { motion, AnimatePresence } from "framer-motion";
-import { useSetlistMock, useSetlistsMock } from "@/hooks/use-setlists-mock.hook";
+// import { useSetlistMock, useSetlistsMock } from "@/hooks/use-setlists-mock.hook";
+import { useSetlist, useSetlists } from "@/hooks/use-setlists.hook";
+import { useGetSong } from "@/hooks/use-songs.hook";
 
 const NOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
-
 function transposeChord(chord: string, amount: number) {
   return chord.replace(/[A-G][#b]?/g, (match) => {
     let note = match;
@@ -49,9 +50,7 @@ function transposeChord(chord: string, amount: number) {
   });
 }
 
-import { useGetSongMock } from "@/hooks/use-songs-mock.hook";
 import { ChordDiagram } from "@/components/chord-diagram";
-// import { useGetSongQuery } from "@/http/hooks/songs/use-get-song.hook";
 
 function SongViewer() {
   const searchParams = useSearchParams();
@@ -61,12 +60,10 @@ function SongViewer() {
   const songIndexStr = searchParams.get("songIndex");
   const songIndex = songIndexStr ? parseInt(songIndexStr) : -1;
 
-  // Setlist context
-  const { setlist } = useSetlistMock(setlistId || "");
-  const { setlists = [] } = useSetlistsMock();
-
-  // const { song, isLoading: loading, isError } = useGetSongQuery({ url });
-  const { song, isLoading: loading, isError } = useGetSongMock(url);
+  // Real API hooks
+  const { setlist } = useSetlist(setlistId || "");
+  const { setlists = [], addSongToSetlist } = useSetlists();
+  const { data: song, isLoading: loading, isError } = useGetSong(url);
   
   const [transpose, setTranspose] = useState(0);
   const [autoScroll, setAutoScroll] = useState(false);
@@ -75,38 +72,28 @@ function SongViewer() {
   const [showDiagrams, setShowDiagrams] = useState(false);
   const [showSetlistSelector, setShowSetlistSelector] = useState(false);
 
-  const handleAddToSetlist = useCallback((targetSetlistId: number) => {
+  const handleAddToSetlist = useCallback(async (targetSetlistId: number) => {
     if (!song) return;
     
-    const stored = localStorage.getItem("harmoniq_mock_setlists");
-    if (stored) {
-        const lists = JSON.parse(stored);
-        const idx = lists.findIndex((l: { id: number }) => l.id === targetSetlistId);
-        if (idx !== -1) {
-            // Check if song already exists in this setlist
-            const exists = lists[idx].songs.some((s: { url: string }) => s.url === url);
-            if (exists) {
-                alert("Esta música já está neste repertório.");
-                setShowSetlistSelector(false);
-                return;
-            }
-
-            const newSongId = Math.floor(Math.random() * 1000000); // Use random for ID to avoid Date.now lint
-            lists[idx].songs.push({
-                id: newSongId,
-                setlist_id: targetSetlistId,
+    try {
+        await addSongToSetlist({
+            setlistId: targetSetlistId,
+            song: {
                 title: song.title,
                 artist: song.artist,
                 url: url,
-                key: song.key,
-                order: lists[idx].songs.length
-            });
-            localStorage.setItem("harmoniq_mock_setlists", JSON.stringify(lists));
-            alert(`Música adicionada em "${lists[idx].title}"`);
-            setShowSetlistSelector(false);
-        }
+                key: song.key
+            }
+        });
+        alert(`Música adicionada com sucesso!`);
+        setShowSetlistSelector(false);
+    } catch (err: unknown) {
+        const msg = (err as any).response?.data?.message || "Não foi possível adicionar a música";
+        alert(msg);
     }
-  }, [song, url]);
+  }, [song, url, addSongToSetlist]);
+
+
 
   const goToNext = () => {
     if (setlist && songIndex < setlist.songs.length - 1) {
