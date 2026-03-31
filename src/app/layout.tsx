@@ -23,6 +23,8 @@ import { cn } from "@/lib/utils";
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 
+import { Toaster } from "sonner";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -34,7 +36,10 @@ export default function RootLayout({
       className={cn("h-full", "antialiased", "dark", outfit.variable, jetbrainsMono.variable, "font-sans", geist.variable)}
     >
       <body className="min-h-screen bg-black text-white font-sans selection:bg-yellow-500/30">
-        <ReactQueryProvider>{children}</ReactQueryProvider>
+        <ReactQueryProvider>
+            {children}
+            <Toaster richColors position="top-right" closeButton theme="dark" />
+        </ReactQueryProvider>
       </body>
     </html>
   );

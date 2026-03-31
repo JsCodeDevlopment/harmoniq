@@ -13,12 +13,13 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useState } from "react";
 
 import { Button } from "@/components/ui/button";
-// import { useSearchSongsMock } from "@/hooks/use-songs-mock.hook";
-// import { useSetlistsMock } from "@/hooks/use-setlists-mock.hook";
+import { toast } from "sonner";
 import { useSetlists } from "@/hooks/use-setlists.hook";
 import { useSearchSongs } from "@/hooks/use-songs.hook";
 import { cn } from "@/lib/utils";
 import { AnimatePresence } from "framer-motion";
+
+const ALL_KEYS = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
 
 function SearchResults() {
   const searchParams = useSearchParams();
@@ -26,18 +27,19 @@ function SearchResults() {
   const initialQuery = searchParams.get("q") || "";
 
   const [query, setQuery] = useState(initialQuery);
-  // const { songs = [], isLoading: loading } = useSearchSongsMock(initialQuery);
-  // const { setlists = [] } = useSetlistsMock();
   const { data: songs = [], isLoading: loading } = useSearchSongs(initialQuery);
   const { setlists = [], addSongToSetlist } = useSetlists();
   const [activeSetlistSelector, setActiveSetlistSelector] = useState<
     number | null
   >(null);
 
+
   async function handleSearch(q: string) {
     if (!q) return;
     router.push(`/search?q=${encodeURIComponent(q)}`);
   }
+
+  const [selectedKey, setSelectedKey] = useState("C");
 
   const handleAddToSetlist = useCallback(
     async (
@@ -51,19 +53,22 @@ function SearchResults() {
             title: song.title,
             artist: song.artist,
             url: song.url,
-            key: "C", // Tom padrão para novos itens vindo da busca
+            key: selectedKey, 
           },
         });
-        alert(`Música adicionada com sucesso!`);
+        toast.success("Adicionada!", {
+          description: `"${song.title}" em ${selectedKey} foi salva com sucesso.`
+        });
         setActiveSetlistSelector(null);
       } catch (err: unknown) {
+        const axiosError = err as { response?: { data?: { message?: string } } };
         const msg =
-          (err as any).response?.data?.message ||
+          axiosError.response?.data?.message ||
           "Não foi possível adicionar a música";
-        alert(msg);
+        toast.error("Erro", { description: msg });
       }
     },
-    [addSongToSetlist],
+    [addSongToSetlist, selectedKey],
   );
 
   return (
@@ -184,12 +189,36 @@ function SearchResults() {
                         initial={{ opacity: 0, scale: 0.95, y: -10 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95, y: -10 }}
-                        className="absolute right-0 top-full mt-2 w-64 bg-zinc-900 border border-white/10 shadow-2xl rounded-2xl p-4 z-50"
+                        className="absolute right-0 top-full mt-2 w-72 bg-zinc-900 border border-white/10 shadow-2xl rounded-2xl p-4 z-50"
                       >
+                        <div className="mb-4">
+                          <h4 className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-3 px-1">
+                            Tom da música
+                          </h4>
+                          <div className="grid grid-cols-6 gap-1">
+                            {ALL_KEYS.map((k) => (
+                              <button
+                                key={k}
+                                onClick={() => setSelectedKey(k)}
+                                className={cn(
+                                  "h-8 rounded-lg text-[11px] font-bold transition-all",
+                                  selectedKey === k
+                                    ? "bg-yellow-500 text-black shadow-lg shadow-yellow-500/10"
+                                    : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-white"
+                                )}
+                              >
+                                {k}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="h-px bg-white/5 mb-4" />
+
                         <h4 className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-3 px-1">
                           Escolha um repertório
                         </h4>
-                        <div className="flex flex-col gap-1 max-h-60 overflow-y-auto pr-1">
+                        <div className="flex flex-col gap-1 max-h-48 overflow-y-auto pr-1 custom-scrollbar">
                           {setlists.map((list) => (
                             <button
                               key={list.id}

@@ -33,14 +33,6 @@ export function Navbar() {
           <a href="#showcase" className="hover:text-white transition-colors">
             Visualizador
           </a>
-          {isAuthenticated && (
-            <button 
-              onClick={() => router.push("/setlists")} 
-              className="hover:text-white transition-colors cursor-pointer"
-            >
-              Meus Repertórios
-            </button>
-          )}
           <a href="#about" className="hover:text-white transition-colors">
             Sobre
           </a>
@@ -49,10 +41,16 @@ export function Navbar() {
         <div className="hidden md:flex items-center gap-3">
           {isAuthenticated ? (
             <div className="flex items-center gap-4">
-              <span className="text-zinc-400 text-sm font-medium">Olá, <span className="text-white">{user?.name}</span></span>
+              <button 
+                onClick={() => router.push("/profile")}
+                className="text-zinc-400 text-sm font-medium hover:text-white transition-colors cursor-pointer"
+              >
+                Olá, <span className="text-white font-bold">{user?.name}</span>
+              </button>
+              <div className="w-px h-4 bg-white/10" />
               <Button 
                 variant="ghost" 
-                className="text-zinc-500 hover:text-white font-medium text-sm cursor-pointer"
+                className="text-zinc-500 hover:text-white font-medium text-sm cursor-pointer h-auto p-0"
                 onClick={logout}
               >
                 Sair
@@ -105,11 +103,11 @@ export function Navbar() {
             <button
               onClick={() => {
                 setIsMenuOpen(false);
-                router.push("/setlists");
+                router.push("/profile");
               }}
               className="text-sm font-medium text-zinc-400 text-left"
             >
-              Meus Repertórios
+              Meu Perfil
             </button>
           )}
           <a
@@ -121,11 +119,11 @@ export function Navbar() {
           </a>
           <div className="h-px bg-white/5 my-2" />
           {isAuthenticated ? (
-            <Button onClick={logout} className="bg-zinc-900 text-white font-semibold w-full">Sair ({user?.name})</Button>
+            <Button onClick={logout} className="bg-zinc-900 border border-white/5 text-white font-semibold w-full h-12 rounded-xl">Sair ({user?.name})</Button>
           ) : (
             <>
-              <Button onClick={() => router.push("/login")} className="bg-yellow-500 text-black font-semibold w-full">Entrar</Button>
-              <Button onClick={() => router.push("/register")} variant="ghost" className="text-white font-semibold w-full">Registrar</Button>
+              <Button onClick={() => router.push("/login")} className="bg-yellow-500 text-black font-semibold w-full h-12 rounded-xl">Entrar</Button>
+              <Button onClick={() => router.push("/register")} variant="ghost" className="text-white font-semibold w-full h-12 rounded-xl">Registrar</Button>
             </>
           )}
         </div>

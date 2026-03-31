@@ -49,7 +49,8 @@ export function useAuth() {
       router.push("/");
       return { success: true };
     } catch (err: unknown) {
-      const message = (err as any).response?.data?.message || "Credenciais inválidas";
+      const axiosError = err as { response?: { data?: { message?: string } } };
+      const message = axiosError.response?.data?.message || "Credenciais inválidas";
       return { 
         success: false, 
         message 
@@ -66,7 +67,8 @@ export function useAuth() {
       router.push("/");
       return { success: true };
     } catch (err: unknown) {
-      const message = (err as any).response?.data?.message || "Não foi possível criar a conta";
+      const axiosError = err as { response?: { data?: { message?: string } } };
+      const message = axiosError.response?.data?.message || "Não foi possível criar a conta";
       return { 
         success: false, 
         message 
@@ -80,12 +82,37 @@ export function useAuth() {
     router.push("/");
   }, [router]);
 
+  const updateProfile = async (name: string) => {
+    try {
+      await api.put("/users/me", { name });
+      await loadUser();
+      return { success: true };
+    } catch (err: unknown) {
+      const axiosError = err as { response?: { data?: { message?: string } } };
+      const message = axiosError.response?.data?.message || "Erro ao atualizar perfil";
+      return { success: false, message };
+    }
+  };
+
+  const changePassword = async (oldPassword: string, newPassword: string) => {
+    try {
+      await api.put("/users/me/password", { old_password: oldPassword, new_password: newPassword });
+      return { success: true };
+    } catch (err: unknown) {
+      const axiosError = err as { response?: { data?: { message?: string } } };
+      const message = axiosError.response?.data?.message || "Erro ao alterar senha";
+      return { success: false, message };
+    }
+  };
+
   return { 
     user, 
     isInitializing, 
     login, 
     register, 
     logout,
+    updateProfile,
+    changePassword,
     isAuthenticated: !!user 
   };
 }

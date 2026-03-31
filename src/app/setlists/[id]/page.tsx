@@ -1,48 +1,104 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ChevronLeft, Loader2, Music, ListMusic, Plus, Share2, Trash2, GripVertical, Check, Edit2 } from "lucide-react";
+import { 
+    ChevronLeft, Loader2, Music, ListMusic, Plus, Share2, 
+    Trash2, GripVertical, Check, Edit2 
+} from "lucide-react";
 import { useRouter, useParams } from "next/navigation";
 import { Suspense, useState } from "react";
 
 import { Button } from "@/components/ui/button";
-// import { useSetlistMock } from "@/hooks/use-setlists-mock.hook";
+import { Dialog } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { useSetlist } from "@/hooks/use-setlists.hook";
+import { toast } from "sonner";
 
 function SetlistDetails() {
   const router = useRouter();
   const { id } = useParams();
-  // const { setlist, isLoading: loading, removeSong, togglePublic } = useSetlistMock(id as string);
   const { setlist, isLoading: loading, removeSong, togglePublic, renameSetlist } = useSetlist(id as string);
+  
   const [copied, setCopied] = useState(false);
 
-  const handleRename = async () => {
-    if (!setlist) return;
-    const newTitle = prompt("Digite o novo nome para esta setlist:", setlist.title);
-    if (newTitle && newTitle !== setlist.title) {
-        await renameSetlist(newTitle);
+  // Rename Dialog State
+  const [isRenameOpen, setIsRenameOpen] = useState(false);
+  const [newTitle, setNewTitle] = useState("");
+  const [isRenaming, setIsRenaming] = useState(false);
+
+  // Remove Song Dialog State
+  const [removeSongId, setRemoveSongId] = useState<number | null>(null);
+  const [isRemoving, setIsRemoving] = useState(false);
+
+  // Share/Public Dialog State
+  const [isShareAlertOpen, setIsShareAlertOpen] = useState(false);
+
+  const openRename = () => {
+    if (setlist) {
+      setNewTitle(setlist.title);
+      setIsRenameOpen(true);
+    }
+  };
+
+  const handleRenameSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newTitle.trim() || newTitle === setlist?.title) {
+        setIsRenameOpen(false);
+        return;
+    }
+    
+    setIsRenaming(true);
+    try {
+      await renameSetlist(newTitle);
+      toast.success("Sucesso", { description: "Repertório renomeado!" });
+      setIsRenameOpen(false);
+    } catch {
+      toast.error("Erro", { description: "Não foi possível renomear." });
+    } finally {
+      setIsRenaming(false);
     }
   };
 
   const handleShare = () => {
     if (!setlist) return;
     if (!setlist.is_public) {
-      if (confirm("Esta setlist é privada. Deseja torná-la pública para compartilhar?")) {
-        togglePublic();
-      } else {
-        return;
-      }
+      setIsShareAlertOpen(true);
+      return;
     }
     const url = `${window.location.origin}/setlists/shared/${setlist.public_id}`;
     navigator.clipboard.writeText(url);
     setCopied(true);
+    toast.success("Link copiado!", { description: "Pronto para compartilhar!" });
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleRemoveSong = (e: React.MouseEvent, songId: number) => {
-    e.stopPropagation();
-    if (confirm("Remover esta música do repertório?")) {
-      removeSong(songId);
+  const makePublicAndShare = async () => {
+    if (!setlist) return;
+    try {
+        await togglePublic();
+        setIsShareAlertOpen(false);
+        
+        const url = `${window.location.origin}/setlists/shared/${setlist.public_id}`;
+        navigator.clipboard.writeText(url);
+        setCopied(true);
+        toast.success("Agora é público!", { description: "Link copiado para a área de transferência." });
+        setTimeout(() => setCopied(false), 2000);
+    } catch {
+        toast.error("Erro", { description: "Falha ao alterar privacidade." });
+    }
+  };
+
+  const execRemoveSong = async () => {
+    if (removeSongId === null) return;
+    setIsRemoving(true);
+    try {
+      await removeSong(removeSongId);
+      toast.success("Música removida", { description: "A música foi retirada do seu roteiro." });
+      setRemoveSongId(null);
+    } catch {
+      toast.error("Erro", { description: "Não foi possível remover a música." });
+    } finally {
+      setIsRemoving(false);
     }
   };
 
@@ -82,7 +138,7 @@ function SetlistDetails() {
               <div className="flex items-center gap-2">
                 <h1 className="text-xl font-bold tracking-tight">{setlist.title}</h1>
                 <button 
-                    onClick={handleRename}
+                    onClick={openRename}
                     className="p-1 hover:bg-white/5 rounded text-zinc-500 hover:text-white transition-opacity md:opacity-0 group-hover/title:opacity-100"
                     title="Renomear"
                 >
@@ -162,7 +218,10 @@ function SetlistDetails() {
                 <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all">
                    <button 
                     className="p-2 text-zinc-600 hover:text-red-500 transition-colors"
-                    onClick={(e) => handleRemoveSong(e, song.id)}
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        setRemoveSongId(song.id);
+                    }}
                    >
                      <Trash2 className="w-4 h-4" />
                    </button>
@@ -194,6 +253,98 @@ function SetlistDetails() {
           </div>
         </div>
       </main>
+
+      {/* RENAME DIALOG */}
+      <Dialog 
+        isOpen={isRenameOpen} 
+        onClose={() => !isRenaming && setIsRenameOpen(false)} 
+        title="Renomear Repertório"
+      >
+        <form onSubmit={handleRenameSubmit} className="space-y-6">
+          <Input 
+            placeholder="Novo nome" 
+            value={newTitle}
+            onChange={(e) => setNewTitle(e.target.value)}
+            disabled={isRenaming}
+            autoFocus
+          />
+          <div className="flex gap-3">
+            <Button 
+                type="button"
+                variant="ghost" 
+                className="flex-1 rounded-xl text-zinc-500"
+                onClick={() => setIsRenameOpen(false)}
+                disabled={isRenaming}
+            >
+                Cancelar
+            </Button>
+            <Button 
+                type="submit"
+                variant="yellow" 
+                className="flex-1 rounded-xl font-bold"
+                disabled={isRenaming || !newTitle.trim()}
+            >
+                {isRenaming ? <Loader2 className="w-4 h-4 animate-spin" /> : "Salvar Alteração"}
+            </Button>
+          </div>
+        </form>
+      </Dialog>
+
+      {/* REMOVE SONG DIALOG */}
+      <Dialog 
+        isOpen={removeSongId !== null} 
+        onClose={() => !isRemoving && setRemoveSongId(null)} 
+        title="Remover Música"
+      >
+        <div className="space-y-6">
+          <p className="text-zinc-400 text-sm leading-relaxed">Tem certeza que deseja remover esta música do repertório? Você poderá adicioná-la novamente mais tarde.</p>
+          <div className="flex gap-3">
+            <Button 
+                variant="ghost" 
+                className="flex-1 rounded-xl text-zinc-500"
+                onClick={() => setRemoveSongId(null)}
+                disabled={isRemoving}
+            >
+                Manter
+            </Button>
+            <Button 
+                variant="ghost" 
+                className="flex-1 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white font-bold"
+                onClick={execRemoveSong}
+                disabled={isRemoving}
+            >
+                {isRemoving ? <Loader2 className="w-4 h-4 animate-spin" /> : "Remover Música"}
+            </Button>
+          </div>
+        </div>
+      </Dialog>
+
+      {/* SHARE ALERT DIALOG */}
+      <Dialog 
+        isOpen={isShareAlertOpen} 
+        onClose={() => setIsShareAlertOpen(false)} 
+        title="Repertório Privado"
+      >
+        <div className="space-y-6">
+          <p className="text-zinc-400 text-sm leading-relaxed">Esta setlist é privada. Deseja torná-la pública agora para que você possa compartilhar o link com outras pessoas?</p>
+          <div className="flex gap-3">
+            <Button 
+                variant="ghost" 
+                className="flex-1 rounded-xl text-zinc-500 text-xs"
+                onClick={() => setIsShareAlertOpen(false)}
+            >
+                Agora não
+            </Button>
+            <Button 
+                variant="yellow" 
+                className="flex-2 rounded-xl font-bold text-xs"
+                onClick={makePublicAndShare}
+            >
+                Tornar Público e Copiar Link
+            </Button>
+          </div>
+        </div>
+      </Dialog>
     </div>
   );
 }
