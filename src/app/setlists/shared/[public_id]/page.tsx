@@ -78,7 +78,7 @@ function SharedSetlist() {
                 className="rounded-lg font-bold"
                 onClick={() => {
                     if (setlist.songs.length > 0) {
-                        router.push(`/song?url=${encodeURIComponent(setlist.songs[0].url)}&sharedId=${public_id}&songIndex=0`);
+                        router.push(`/song?id=${typeof btoa !== "undefined" ? btoa(encodeURIComponent(setlist.songs[0].url)) : ""}&sharedId=${public_id}&songIndex=0`);
                     }
                 }}
                 disabled={setlist.songs.length === 0}
@@ -102,7 +102,7 @@ function SharedSetlist() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.05, duration: 0.4 }}
-                onClick={() => router.push(`/song?url=${encodeURIComponent(song.url)}&sharedId=${public_id}&songIndex=${i}`)}
+                onClick={() => router.push(`/song?id=${typeof btoa !== "undefined" ? btoa(encodeURIComponent(song.url)) : ""}&sharedId=${public_id}&songIndex=${i}`)}
                 className="group flex items-center justify-between p-5 rounded-2xl bg-zinc-900/20 border border-white/5 hover:border-yellow-500/20 hover:bg-zinc-900/40 cursor-pointer transition-all duration-300"
               >
                 <div className="flex items-center gap-6 flex-1">

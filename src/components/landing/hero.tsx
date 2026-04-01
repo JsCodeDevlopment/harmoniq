@@ -178,7 +178,7 @@ export function Hero() {
                       transition={{ duration: 0.5, delay: i * 0.1 }}
                       key={song.url + i}
                       onClick={() =>
-                        router.push(`/song?url=${encodeURIComponent(song.url)}`)
+                        router.push(`/song?id=${typeof btoa !== "undefined" ? btoa(encodeURIComponent(song.url)) : ""}`)
                       }
                       className="group flex flex-col text-left focus:outline-none"
                     >

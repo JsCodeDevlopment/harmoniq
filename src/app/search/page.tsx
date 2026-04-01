@@ -137,7 +137,7 @@ function SearchResults() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: i * 0.03, duration: 0.4 }}
                     onClick={() =>
-                      router.push(`/song?url=${encodeURIComponent(song.url)}`)
+                      router.push(`/song?id=${typeof btoa !== "undefined" ? btoa(encodeURIComponent(song.url)) : ""}`)
                     }
                     className="group flex items-center justify-between p-5 rounded-xl bg-zinc-900/20 border border-white/2 hover:border-yellow-500/20 hover:bg-zinc-900/40 cursor-pointer transition-all duration-200"
                   >

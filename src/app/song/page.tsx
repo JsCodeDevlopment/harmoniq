@@ -26,7 +26,15 @@ import {
   Plus,
 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import {
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { createPortal } from "react-dom";
 import { toast } from "sonner";
 // import { useSetlistMock, useSetlistsMock } from "@/hooks/use-setlists-mock.hook";
 import {
@@ -60,7 +68,20 @@ import { ChordDiagram } from "@/components/chord-diagram";
 function SongViewer() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const url = searchParams.get("url") || "";
+  const rawUrl = searchParams.get("url");
+  const encodedId = searchParams.get("id");
+  
+  const url = useMemo(() => {
+    if (rawUrl) return rawUrl;
+    if (encodedId) {
+       try {
+         return decodeURIComponent(atob(encodedId));
+       } catch (e) {
+         return "";
+       }
+    }
+    return "";
+  }, [rawUrl, encodedId]);
   const setlistId = searchParams.get("setlistId");
   const sharedId = searchParams.get("sharedId");
   const songIndexStr = searchParams.get("songIndex");
@@ -163,7 +184,8 @@ function SongViewer() {
   const goToNext = () => {
     if (setlist && songIndex < setlist.songs.length - 1) {
       const next = setlist.songs[songIndex + 1];
-      const baseUrl = `/song?url=${encodeURIComponent(next.url)}&songIndex=${songIndex + 1}`;
+      const encodedUrl = typeof btoa !== "undefined" ? btoa(encodeURIComponent(next.url)) : "";
+      const baseUrl = `/song?id=${encodedUrl}&songIndex=${songIndex + 1}`;
       const finalUrl = sharedId
         ? `${baseUrl}&sharedId=${sharedId}`
         : `${baseUrl}&setlistId=${setlistId}`;
@@ -174,7 +196,8 @@ function SongViewer() {
   const goToPrev = () => {
     if (setlist && songIndex > 0) {
       const prev = setlist.songs[songIndex - 1];
-      const baseUrl = `/song?url=${encodeURIComponent(prev.url)}&songIndex=${songIndex - 1}`;
+      const encodedUrl = typeof btoa !== "undefined" ? btoa(encodeURIComponent(prev.url)) : "";
+      const baseUrl = `/song?id=${encodedUrl}&songIndex=${songIndex - 1}`;
       const finalUrl = sharedId
         ? `${baseUrl}&sharedId=${sharedId}`
         : `${baseUrl}&setlistId=${setlistId}`;
@@ -212,12 +235,6 @@ function SongViewer() {
       setTranspose(diff);
     }
   };
-
-  const processedContent = song?.content
-    ? song.content.replace(/<b>(.*?)<\/b>/g, (match: string, chord: string) => {
-        return `<span class="chord text-yellow-600 font-bold">${transposeChord(chord, transpose)}</span>`;
-      })
-    : "";
 
   const songContent = song?.content;
   const uniqueChords = useMemo(() => {
@@ -482,7 +499,7 @@ function SongViewer() {
           )}
         >
           {!performanceMode && (
-            <div className="bg-white border border-zinc-200 rounded-[2rem] shadow-sm overflow-hidden flex flex-col lg:flex-row items-stretch divide-y lg:divide-y-0 lg:divide-x divide-zinc-100">
+            <div className="bg-white border border-zinc-200 rounded-4xl shadow-sm overflow-hidden flex flex-col lg:flex-row items-stretch divide-y lg:divide-y-0 lg:divide-x divide-zinc-100">
               {/* Module: Tonalidade */}
               <div className="flex-[1.2] flex items-center gap-4 px-6 py-5">
                 <div className="flex flex-col w-full">
@@ -512,7 +529,8 @@ function SongViewer() {
                       </Button>
                     </div>
                     <div className="px-3 py-2 rounded-xl bg-zinc-100/50 text-[10px] font-bold text-zinc-500 border border-zinc-100/30">
-                      TOM ORIGINAL: <span className="text-zinc-900 ml-1">{song?.key}</span>
+                      TOM ORIGINAL:{" "}
+                      <span className="text-zinc-900 ml-1">{song?.key}</span>
                     </div>
                   </div>
                 </div>
@@ -660,14 +678,19 @@ function SongViewer() {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8 }}
           className={cn(
-            "cifra-content transition-all duration-500 overflow-x-auto pb-8",
+            "cifra-content transition-all duration-500 overflow-x-auto pb-8 relative",
             performanceMode
               ? "text-[20px] sm:text-2xl md:text-4xl leading-[2.2] md:leading-[2.5] tracking-wide font-medium"
               : "text-[13px] sm:text-base md:text-lg leading-[2.2] text-zinc-900 font-medium",
           )}
           style={{ whiteSpace: "pre", fontFamily: "monospace" }}
-          dangerouslySetInnerHTML={{ __html: processedContent }}
-        />
+        >
+          <CifraRenderer
+            content={song?.content || ""}
+            transpose={transpose}
+            performanceMode={performanceMode}
+          />
+        </motion.div>
 
         <div className="h-48" />
       </main>
@@ -796,4 +819,191 @@ export default function SongPage() {
       <SongViewer />
     </Suspense>
   );
+}
+
+function ChordWithTooltip({ chord, dark }: { chord: string; dark?: boolean }) {
+  const [isHovered, setIsHovered] = useState(false);
+  const [coords, setCoords] = useState<{
+    x: number;
+    y: number;
+    align: "center" | "left" | "right";
+  }>({ x: 0, y: 0, align: "center" });
+  const [mounted, setMounted] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setMounted(true);
+    
+    const handleScroll = () => {
+      setIsHovered(false);
+    };
+
+    // Close tooltip if user scrolls to prevent detached floating
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener("scroll", handleScroll, { passive: true, capture: true }); // Catch nested scrolls
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("scroll", handleScroll, { capture: true });
+    };
+  }, []);
+
+  const handleMouseEnter = () => {
+    if (containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      const screenWidth = window.innerWidth;
+      const tooltipWidth = 180; // Estimated max width
+
+      let align: "center" | "left" | "right" = "center";
+      let x = rect.left + rect.width / 2;
+
+      if (x - tooltipWidth / 2 < 16) {
+        align = "left";
+        x = rect.left;
+      } else if (x + tooltipWidth / 2 > screenWidth - 16) {
+        align = "right";
+        x = rect.right;
+      }
+
+      setCoords({
+        x,
+        y: rect.top - 12, // 12px gap
+        align,
+      });
+    }
+    setIsHovered(true);
+  };
+
+  const handleMouseLeave = () => {
+    setIsHovered(false);
+  };
+
+  return (
+    <>
+      <div
+        ref={containerRef}
+        className="relative inline-block cursor-help group"
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+      >
+        <span
+          className={cn(
+            "transition-all px-1 py-0.5 rounded-md font-bold",
+            dark
+              ? "text-yellow-500 hover:bg-yellow-500 hover:text-black cursor-pointer"
+              : "text-yellow-600 hover:bg-yellow-500 hover:text-white cursor-pointer",
+            "active:scale-95",
+          )}
+        >
+          {chord}
+        </span>
+      </div>
+
+      {mounted &&
+        createPortal(
+          <AnimatePresence>
+            {isHovered && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 5 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 5 }}
+                transition={{ duration: 0.15 }}
+                className="fixed z-[9999] pointer-events-none"
+                style={{
+                  top: coords.y,
+                  left: coords.x,
+                  transform:
+                    coords.align === "left"
+                      ? "translate(0px, -100%)"
+                      : coords.align === "right"
+                        ? "translate(-100%, -100%)"
+                        : "translate(-50%, -100%)",
+                }}
+              >
+                <div className="bg-white rounded-[1.25rem] shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-zinc-200 p-2 overflow-hidden flex flex-col items-center">
+                  {/* Reference style header dot pattern */}
+                  <div
+                    className="w-full h-8 absolute top-0 left-0 opacity-[0.03]"
+                    style={{
+                      backgroundImage:
+                        "radial-gradient(#000 1.5px, transparent 0)",
+                      backgroundSize: "8px 8px",
+                    }}
+                  />
+
+                  <ChordDiagram
+                    name={chord}
+                    dark={false}
+                    className="shadow-none border-none bg-transparent pt-4 pb-2"
+                  />
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>,
+          document.body,
+        )}
+    </>
+  );
+}
+
+function CifraRenderer({
+  content,
+  transpose,
+  performanceMode,
+}: {
+  content: string;
+  transpose: number;
+  performanceMode?: boolean;
+}) {
+  return useMemo(() => {
+    if (!content) return null;
+
+    // Use a temp div with dangerouslySetInnerHTML to parse the string into DOM, then convert to React
+    const div = document.createElement("div");
+    div.innerHTML = content;
+
+    const convertToReact = (nodes: NodeList): React.ReactNode => {
+      return Array.from(nodes).map((node, i) => {
+        if (node.nodeType === Node.TEXT_NODE) {
+          return node.textContent;
+        }
+
+        if (node.nodeType === Node.ELEMENT_NODE) {
+          const el = node as HTMLElement;
+
+          if (el.tagName === "B") {
+            const chord = el.textContent || "";
+            const transposed = transposeChord(chord, transpose);
+            return (
+              <ChordWithTooltip
+                key={i}
+                chord={transposed}
+                dark={performanceMode}
+              />
+            );
+          }
+
+          // Handle spans (like tabs or labels)
+          if (el.tagName === "SPAN") {
+            return (
+              <span key={i} className={el.className}>
+                {convertToReact(el.childNodes)}
+              </span>
+            );
+          }
+
+          // Fallback for other elements
+          return (
+            <span key={i} className={el.className}>
+              {convertToReact(el.childNodes)}
+            </span>
+          );
+        }
+
+        return null;
+      });
+    };
+
+    return convertToReact(div.childNodes);
+  }, [content, transpose, performanceMode]);
 }
