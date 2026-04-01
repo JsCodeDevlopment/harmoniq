@@ -3,7 +3,7 @@
 Plataforma moderna, intuitiva e responsiva desenvolvida para músicos que buscam profissionalismo e agilidade no gerenciamento de repertórios. O **Harmoniq** elimina a complexidade das cifras estáticas, oferecendo uma experiência dinâmica de transposição e visualização de acordes.
 
 <h1 align="center">
-  <img alt="Banner do Harmoniq" title="#Banner" style="object-fit: cover; width: 100%; max-height: 520px" src="public/mockup.png" />
+  <img alt="Banner do Harmoniq" title="#Banner" style="object-fit: cover; width: 100%; max-height: 520px" src="public/preview.webp" />
 </h1>
 
 ---
