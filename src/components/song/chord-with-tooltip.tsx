@@ -11,11 +11,13 @@ import { createPortal } from "react-dom";
 export function ChordWithTooltip({
   chord,
   dark,
+  customColor = "yellow",
   variationIndex = 0,
   onVariationChange,
 }: {
   chord: string;
   dark?: boolean;
+  customColor?: string;
   variationIndex?: number;
   onVariationChange?: (chord: string, idx: number) => void;
 }) {
@@ -135,6 +137,16 @@ export function ChordWithTooltip({
     }
   };
 
+  const colorClasses: Record<string, string> = {
+    yellow: dark ? "text-yellow-500 hover:bg-yellow-500 hover:text-black" : "text-yellow-600 hover:bg-yellow-500 hover:text-white",
+    blue: "text-blue-500 hover:bg-blue-500 hover:text-white",
+    green: "text-green-500 hover:bg-green-500 hover:text-white",
+    white: "text-white hover:bg-white hover:text-black",
+    orange: "text-orange-500 hover:bg-orange-500 hover:text-white",
+  };
+
+  const selectedColorClass = colorClasses[customColor] || colorClasses.yellow;
+
   return (
     <>
       <div
@@ -145,11 +157,8 @@ export function ChordWithTooltip({
       >
         <span
           className={cn(
-            "transition-all px-1 py-0.5 rounded-md font-bold",
-            dark
-              ? "text-yellow-500 hover:bg-yellow-500 hover:text-black cursor-pointer"
-              : "text-yellow-600 hover:bg-yellow-500 hover:text-white cursor-pointer",
-            "active:scale-95",
+            "transition-all px-1 py-0.5 rounded-md font-bold cursor-pointer active:scale-95",
+            selectedColorClass
           )}
         >
           {chord}

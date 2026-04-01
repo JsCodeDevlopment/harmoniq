@@ -8,12 +8,14 @@ export function CifraRenderer({
   content,
   transpose,
   performanceMode,
+  chordColor = "yellow",
   variations = {},
   onVariationChange,
 }: {
   content: string;
   transpose: number;
   performanceMode?: boolean;
+  chordColor?: string;
   variations?: Record<string, number>;
   onVariationChange?: (chord: string, idx: number) => void;
 }) {
@@ -41,6 +43,7 @@ export function CifraRenderer({
                 key={i}
                 chord={transposed}
                 dark={performanceMode}
+                customColor={chordColor}
                 variationIndex={variations[transposed] || 0}
                 onVariationChange={onVariationChange}
               />
@@ -69,5 +72,5 @@ export function CifraRenderer({
     };
 
     return convertToReact(div.childNodes);
-  }, [content, transpose, performanceMode, variations, onVariationChange]);
+  }, [content, transpose, performanceMode, variations, onVariationChange, chordColor]);
 }

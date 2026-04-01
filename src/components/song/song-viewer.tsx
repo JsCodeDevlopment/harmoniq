@@ -34,11 +34,27 @@ import {
   useSharedSetlist,
 } from "@/hooks/use-setlists.hook";
 import { useGetSong } from "@/hooks/use-songs.hook";
+import { useAuth } from "@/hooks/use-auth.hook";
 import { NOTES, transposeChord } from "@/lib/chords";
 import { ChordDiagram } from "@/components/chord-diagram";
 import { CifraRenderer } from "./cifra-renderer";
 
+const FONT_SIZE_CLASSES: Record<string, string> = {
+  small: "text-[12px] sm:text-[13px] md:text-[15px]",
+  medium: "text-[13px] sm:text-base md:text-lg",
+  large: "text-[15px] sm:text-lg md:text-xl",
+  xlarge: "text-[17px] sm:text-xl md:text-2xl",
+};
+
+const PERFORMANCE_FONT_SIZE_CLASSES: Record<string, string> = {
+  small: "text-[18px] sm:text-xl md:text-2xl",
+  medium: "text-[20px] sm:text-2xl md:text-4xl",
+  large: "text-[24px] sm:text-3xl md:text-5xl",
+  xlarge: "text-[28px] sm:text-4xl md:text-6xl",
+};
+
 export function SongViewer() {
+  const { user } = useAuth();
   const searchParams = useSearchParams();
   const router = useRouter();
   const rawUrl = searchParams.get("url");
@@ -286,7 +302,7 @@ export function SongViewer() {
         "min-h-screen transition-colors duration-500 selection:bg-yellow-500/30",
         performanceMode
           ? "bg-black text-white"
-          : "bg-zinc-50 text-zinc-900 pb-32",
+          : "bg-zinc-50 text-zinc-900",
       )}
     >
       {!performanceMode && (
@@ -677,8 +693,8 @@ export function SongViewer() {
           className={cn(
             "cifra-content transition-all duration-500 overflow-x-auto pb-8 relative",
             performanceMode
-              ? "text-[20px] sm:text-2xl md:text-4xl leading-[2.2] md:leading-[2.5] tracking-wide font-medium"
-              : "text-[13px] sm:text-base md:text-lg leading-[2.2] text-zinc-900 font-medium",
+              ? cn(PERFORMANCE_FONT_SIZE_CLASSES[user?.font_size || "medium"], "leading-[2.2] md:leading-[2.5] tracking-wide font-medium")
+              : cn(FONT_SIZE_CLASSES[user?.font_size || "medium"], "leading-[2.2] text-zinc-900 font-medium"),
           )}
           style={{ whiteSpace: "pre", fontFamily: "monospace" }}
         >
@@ -686,6 +702,7 @@ export function SongViewer() {
             content={song?.content || ""}
             transpose={transpose}
             performanceMode={performanceMode}
+            chordColor={user?.chord_color || "yellow"}
             variations={variationsMap}
             onVariationChange={handleVariationChange}
           />
@@ -694,114 +711,6 @@ export function SongViewer() {
         <div className="h-48" />
       </main>
 
-      {!performanceMode && (
-        <div className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur-xl rounded-xl px-6 py-3 flex items-center gap-6 shadow-2xl border border-zinc-200 z-50 w-[90%] justify-evenly">
-          <button
-            className="group flex flex-col items-center gap-1 transition-all active:scale-95 text-zinc-400 hover:text-zinc-900"
-            onClick={() => setAutoScroll(!autoScroll)}
-          >
-            <div
-              className={cn(
-                "w-9 h-9 md:w-10 md:h-10 rounded-lg md:rounded-xl flex items-center justify-center transition-all duration-300",
-                autoScroll
-                  ? "bg-yellow-500 text-black shadow-lg shadow-yellow-500/20"
-                  : "bg-zinc-100 group-hover:bg-zinc-200",
-              )}
-            >
-              {autoScroll || false ? (
-                <Pause className="w-4 h-4 md:w-5 md:h-5 fill-current" />
-              ) : (
-                <Play className="w-4 h-4 md:w-5 md:h-5 fill-current" />
-              )}
-            </div>
-            <span className="text-[9px] md:text-[10px] uppercase font-bold tracking-wider">
-              Scroll
-            </span>
-          </button>
-
-          <div className="w-px h-8 md:h-10 bg-zinc-100" />
-
-          <div className="flex items-center bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-white/10 rounded-2xl p-1 shadow-inner ring-1 ring-zinc-900/5">
-            <Button
-              variant="yellow"
-              size="icon-xs"
-              onClick={() => setTranspose((t) => t - 1)}
-              className="rounded-xl size-8 md:size-10 shadow-lg shadow-yellow-500/20 active:scale-95 transition-transform"
-            >
-              <Minus className="w-4 h-4" />
-            </Button>
-            <div className="flex flex-col items-center px-4 md:px-6 min-w-[65px] md:min-w-[85px]">
-              <Select value={currentKey} onValueChange={handleKeyChange}>
-                <SelectTrigger className="h-6 md:h-8 border-none bg-transparent font-bold text-zinc-950 dark:text-yellow-500 text-sm md:text-lg p-0 pr-4 shadow-none">
-                  <SelectValue>{currentKey}</SelectValue>
-                </SelectTrigger>
-                <SelectContent className="bg-white dark:bg-zinc-900 border-zinc-200 dark:border-white/10">
-                  {NOTES.map((note) => (
-                    <SelectItem
-                      key={note}
-                      value={note}
-                      className="cursor-pointer focus:bg-yellow-500/10 focus:text-yellow-600 dark:focus:text-yellow-500"
-                    >
-                      {note}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <span className="text-[7px] md:text-[9px] uppercase font-bold tracking-widest text-zinc-400 mt-0.5 opacity-60">
-                Tom Atual
-              </span>
-            </div>
-            <Button
-              variant="yellow"
-              size="icon-xs"
-              onClick={() => setTranspose((t) => t + 1)}
-              className="rounded-xl size-8 md:size-10 shadow-lg shadow-yellow-500/20 active:scale-95 transition-transform"
-            >
-              <Plus className="w-4 h-4" />
-            </Button>
-          </div>
-
-          <div className="w-px h-8 md:h-10 bg-zinc-100" />
-
-          <button
-            className={cn(
-              "group flex flex-col items-center gap-1 transition-all active:scale-95",
-              showDiagrams
-                ? "text-yellow-600"
-                : "text-zinc-400 hover:text-zinc-900",
-            )}
-            onClick={() => setShowDiagrams(!showDiagrams)}
-          >
-            <div
-              className={cn(
-                "w-9 h-9 md:w-10 md:h-10 rounded-lg md:rounded-xl flex items-center justify-center transition-all duration-300",
-                showDiagrams
-                  ? "bg-yellow-500/10"
-                  : "bg-zinc-100 group-hover:bg-zinc-200",
-              )}
-            >
-              <LayoutGrid className="w-4 h-4 md:w-5 md:h-5" />
-            </div>
-            <span className="text-[9px] md:text-[10px] uppercase font-bold tracking-wider">
-              Shapes
-            </span>
-          </button>
-
-          <div className="w-px h-8 md:h-10 bg-zinc-100" />
-
-          <button
-            className="group flex flex-col items-center gap-1 transition-all active:scale-95 text-zinc-400 hover:text-zinc-900"
-            onClick={() => setPerformanceMode(true)}
-          >
-            <div className="w-9 h-9 md:w-10 md:h-10 rounded-lg md:rounded-xl bg-zinc-100 group-hover:bg-zinc-200 flex items-center justify-center transition-all">
-              <Maximize2 className="w-4 h-4 md:w-5 md:h-5" />
-            </div>
-            <span className="text-[9px] md:text-[10px] uppercase font-bold tracking-wider">
-              Live
-            </span>
-          </button>
-        </div>
-      )}
     </div>
   );
 }

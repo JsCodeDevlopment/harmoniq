@@ -9,8 +9,10 @@ import {
   Loader2,
   LogOut,
   Mail,
+  Palette,
   Save,
   ShieldCheck,
+  Type,
   User,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -32,6 +34,8 @@ function ProfileDashboard() {
   } = useAuth();
 
   const [name, setName] = useState("");
+  const [fontSize, setFontSize] = useState("medium");
+  const [chordColor, setChordColor] = useState("yellow");
   const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
 
   const [oldPassword, setOldPassword] = useState("");
@@ -47,6 +51,8 @@ function ProfileDashboard() {
   useEffect(() => {
     if (user) {
       setName(user.name);
+      setFontSize(user.font_size || "medium");
+      setChordColor(user.chord_color || "yellow");
     }
   }, [user]);
 
@@ -71,9 +77,13 @@ function ProfileDashboard() {
     setIsUpdatingProfile(true);
     setMessage(null);
 
-    const res = await updateProfile(name);
+    const res = await updateProfile({ 
+      name, 
+      font_size: fontSize, 
+      chord_color: chordColor 
+    });
     if (res.success) {
-      setMessage({ text: "Perfil atualizado com sucesso!", type: "success" });
+      setMessage({ text: "Perfil e preferências atualizados!", type: "success" });
     } else {
       setMessage({
         text: res.message || "Erro ao atualizar perfil",
@@ -230,7 +240,78 @@ function ProfileDashboard() {
                   </div>
                 </div>
 
-                <div className="pt-2">
+                {/* Preferências de Exibição */}
+                <div className="pt-6 border-t border-white/5 space-y-6">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="w-8 h-8 rounded-lg bg-zinc-900 flex items-center justify-center">
+                      <Palette className="w-4 h-4 text-zinc-500" />
+                    </div>
+                    <h3 className="text-md font-bold">Personalização da Cifra</h3>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+                    {/* Font Size */}
+                    <div className="space-y-3">
+                      <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider ml-1 flex items-center gap-2">
+                        <Type className="w-3 h-3" /> Tamanho da Fonte
+                      </label>
+                      <div className="flex flex-wrap gap-2">
+                        {[
+                          { id: "small", label: "P", size: "text-xs" },
+                          { id: "medium", label: "M", size: "text-sm" },
+                          { id: "large", label: "G", size: "text-base" },
+                          { id: "xlarge", label: "XG", size: "text-lg" },
+                        ].map((s) => (
+                          <button
+                            key={s.id}
+                            type="button"
+                            onClick={() => setFontSize(s.id)}
+                            className={cn(
+                              "h-10 px-4 rounded-xl border font-bold transition-all",
+                              fontSize === s.id
+                                ? "bg-yellow-500 text-black border-yellow-500"
+                                : "bg-white/5 border-white/5 text-zinc-500 hover:bg-white/10",
+                            )}
+                          >
+                            <span className={s.size}>{s.label}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Chord Color */}
+                    <div className="space-y-3">
+                      <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider ml-1 flex items-center gap-2">
+                        <Palette className="w-3 h-3" /> Cor da Cifra
+                      </label>
+                      <div className="flex flex-wrap gap-2">
+                        {[
+                          { id: "yellow", color: "bg-yellow-500" },
+                          { id: "blue", color: "bg-blue-500" },
+                          { id: "green", color: "bg-green-500" },
+                          { id: "white", color: "bg-white" },
+                          { id: "orange", color: "bg-orange-500" },
+                        ].map((c) => (
+                          <button
+                            key={c.id}
+                            type="button"
+                            onClick={() => setChordColor(c.id)}
+                            className={cn(
+                              "w-10 h-10 rounded-xl border-2 transition-all p-1",
+                              chordColor === c.id
+                                ? "border-yellow-500 scale-110"
+                                : "border-transparent",
+                            )}
+                          >
+                            <div className={cn("w-full h-full rounded-lg shadow-inner", c.color)} />
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-6">
                   <Button
                     type="submit"
                     variant="yellow"
@@ -242,7 +323,7 @@ function ProfileDashboard() {
                     ) : (
                       <Save className="w-4 h-4" />
                     )}
-                    Salvar Alterações
+                    Salvar Tudo
                   </Button>
                 </div>
               </form>

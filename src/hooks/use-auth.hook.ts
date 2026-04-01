@@ -11,6 +11,8 @@ export interface User {
   email: string;
   role: string;
   avatar: string;
+  font_size?: string;
+  chord_color?: string;
 }
 
 export function useAuth() {
@@ -83,9 +85,9 @@ export function useAuth() {
     router.push("/");
   }, [router]);
 
-  const updateProfile = async (name: string) => {
+  const updateProfile = async (data: Partial<User>) => {
     try {
-      await api.put("/users/me", { name });
+      await api.put("/users/me", data);
       await loadUser();
       return { success: true };
     } catch (err: unknown) {
