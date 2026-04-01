@@ -1,36 +1,79 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Harmoniq - Digital Songbook & Chord Library
 
-## Getting Started
+Plataforma moderna, intuitiva e responsiva desenvolvida para músicos que buscam profissionalismo e agilidade no gerenciamento de repertórios. O **Harmoniq** elimina a complexidade das cifras estáticas, oferecendo uma experiência dinâmica de transposição e visualização de acordes.
 
-First, run the development server:
+<h1 align="center">
+  <img alt="Banner do Harmoniq" title="#Banner" style="object-fit: cover; width: 100%; max-height: 520px" src="public/mockup.png" />
+</h1>
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+---
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🚀 Funcionalidades que facilitam seu Show
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+O Harmoniq foi desenhado para ser o braço direito do músico no palco e no ensaio. Confira os principais recursos:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 1. 🎸 Sistema Universal de Acordes
 
-## Learn More
+- **Shapes Dinâmicos:** Visualize diagramas de acordes baseados em formas reais (E, A, C, D, G) em vez de imagens estáticas.
+- **Variações Infinitas:** Explore diferentes posições no braço do instrumento para o mesmo acorde com um clique.
+- **Visualização Premium:** Diagramas nítidos com indicação de dedos, casas e pestanas para facilitar a leitura.
 
-To learn more about Next.js, take a look at the following resources:
+### 2. 🎼 Song Viewer Inteligente
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- **Transposição Instantânea:** Mude o tom de qualquer música com um toque, preservando as variações de acordes escolhidas.
+- **Auto-Scroll Adaptativo:** Configure a velocidade de rolagem para acompanhar a música sem precisar das mãos.
+- **Modo Live (Performance):** Interface otimizada (Dark Mode) para uso em palcos, com fontes ampliadas e alto contraste.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### 3. 📊 Gestão de Repertórios (Setlists)
 
-## Deploy on Vercel
+- **Organização por Show:** Crie e edite setlists personalizados para cada evento ou ensaio.
+- **Persistência de Ajustes:** Salve o tom ideal e as variações de cada acorde especificamente para cada música de um repertório.
+- **Navegação Ágil:** Alterne entre as músicas da sua lista com atalhos rápidos de "Anterior" e "Próxima".
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### 4. 🔗 Compartilhamento e Sincronia
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **Links Públicos:** Compartilhe seus repertórios com sua banda ou alunos através de links simplificados.
+- **Visualização Web:** Os membros da banda podem ver a cifra transposta em tempo real em qualquer dispositivo.
+
+---
+
+## 🛠️ Tecnologias
+
+<div align="center">
+  <img src="https://img.shields.io/badge/Next.js_15-000?style=for-the-badge&logo=next.js&logoColor=white" />
+  <img src="https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white" />
+  <img src="https://img.shields.io/badge/React_19-61DAFB?style=for-the-badge&logo=react&logoColor=black" />
+  <img src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" />
+  <img src="https://img.shields.io/badge/Framer_Motion-0055FF?style=for-the-badge&logo=framer&logoColor=white" />
+  <img src="https://img.shields.io/badge/Lucide_Icons-FF7F50?style=for-the-badge&logo=lucide&logoColor=white" />
+  <img src="https://img.shields.io/badge/Vercel-000?style=for-the-badge&logo=vercel&logoColor=white" />
+</div>
+
+---
+
+## 📅 Histórico de Versões
+
+Confira todas as melhorias e novos recursos em nosso log oficial:
+👉 **[Ver Histórico Completo em RELEASES.md](./RELEASES.md)**
+
+---
+
+## 👨💻 Time e Desenvolvimento
+
+<div align="center">
+  <img src="https://avatars.githubusercontent.com/u/100796752?s=400&u=ae99bd456c6b274cd934d85a374a44340140e222&v=4" width="100" style="border-radius: 50%" />
+  <br>
+  <strong>Jonatas Silva</strong>
+  <br>
+  Senior Software Engineer / CTO & Tech Lead at <a href="https://pokernetic.com/">PokerNetic</a>
+</div>
+
+---
+
+## 📄 Licença
+
+Este projeto é privado e de uso exclusivo da **Harmoniq Inc**.
+
+<div align="center">
+  <sub>Built with ❤️ by <a href="https://github.com/JsCodeDevlopment">Jonatas Silva</a></sub>
+</div>
