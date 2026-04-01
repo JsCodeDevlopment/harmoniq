@@ -477,125 +477,142 @@ function SongViewer() {
 
         <div
           className={cn(
-            "mb-8 md:mb-12 transition-all duration-700",
-            performanceMode ? "pt-20 md:pt-24" : "block",
+            "mb-12 transition-all duration-700",
+            performanceMode ? "pt-24" : "block",
           )}
         >
           {!performanceMode && (
-            <div className="flex flex-wrap gap-4 items-center justify-between p-1.5 md:p-2 rounded-xl md:rounded-2xl bg-white border border-zinc-200 pl-4 md:pl-6 shadow-sm">
-              <div className="flex items-center gap-4 md:gap-8">
-                <button
-                  onClick={() => setShowDiagrams(!showDiagrams)}
-                  className={cn(
-                    "p-2 rounded-lg transition-all flex items-center gap-2 font-semibold text-[10px] uppercase tracking-wider",
-                    showDiagrams
-                      ? "text-yellow-600 bg-yellow-50"
-                      : "text-zinc-400 hover:text-zinc-900",
-                  )}
-                >
-                  <LayoutGrid className="size-4" />
-                  <span className="hidden xs:inline">
-                    {showDiagrams ? "Ocultar Diagramas" : "Ver Diagramas"}
+            <div className="bg-white border border-zinc-200 rounded-[2rem] shadow-sm overflow-hidden flex flex-col lg:flex-row items-stretch divide-y lg:divide-y-0 lg:divide-x divide-zinc-100">
+              {/* Module: Tonalidade */}
+              <div className="flex-[1.2] flex items-center gap-4 px-6 py-5">
+                <div className="flex flex-col w-full">
+                  <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-[0.2em] mb-2.5 opacity-60">
+                    Tonalidade
                   </span>
-                </button>
-                <div className="w-px h-6 bg-zinc-100" />
-                <div className="flex flex-col">
-                  <span className="text-[9px] md:text-[10px] font-semibold text-zinc-400 uppercase tracking-wider mb-0.5 whitespace-nowrap">
-                    Tom Org.
-                  </span>
-                  <span className="text-zinc-900 font-semibold text-sm md:text-base">
-                    {song?.key}
-                  </span>
-                </div>
-                <div className="w-px h-6 md:h-8 bg-zinc-100" />
-                <div className="flex items-center bg-zinc-50 dark:bg-white/5 border border-zinc-200 dark:border-white/10 rounded-xl p-0.5 md:p-1 shadow-sm transition-all hover:border-zinc-300 dark:hover:border-white/20">
-                  <Button
-                    variant="yellow"
-                    size="icon-xs"
-                    onClick={() => setTranspose((t) => t - 1)}
-                    className="rounded-lg size-7 md:size-8 shadow-md shadow-yellow-500/10 active:scale-95 transition-transform"
-                  >
-                    <Minus className="size-3.5 md:size-4" />
-                  </Button>
-                  <div className="flex flex-col items-center px-3 md:px-5 min-w-[70px] md:min-w-[90px]">
-                    <span className="text-[7.5px] md:text-[9px] font-bold text-zinc-400 uppercase tracking-widest mb-0.5 whitespace-nowrap opacity-60">
-                      Tonalidade
-                    </span>
-                    <Select value={currentKey} onValueChange={handleKeyChange}>
-                      <SelectTrigger className="h-5 md:h-6 border-none bg-transparent hover:bg-zinc-100 dark:hover:bg-white/5 font-bold text-zinc-950 dark:text-yellow-500 text-sm md:text-base p-0 pr-3 shadow-none focus:ring-0 transition-colors">
-                        <SelectValue>{currentKey}</SelectValue>
-                      </SelectTrigger>
-                      <SelectContent className="bg-white dark:bg-zinc-900 border-zinc-200 dark:border-white/10">
-                        {NOTES.map((note) => (
-                          <SelectItem
-                            key={note}
-                            value={note}
-                            className="text-zinc-900 dark:text-white focus:bg-yellow-500/10 focus:text-yellow-600 dark:focus:text-yellow-500 cursor-pointer"
-                          >
-                            {note}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center bg-zinc-50 border border-zinc-100 rounded-2xl p-1 shadow-inner">
+                      <Button
+                        variant="yellow"
+                        size="icon-xs"
+                        onClick={() => setTranspose((t) => t - 1)}
+                        className="rounded-xl size-9 hover:scale-105 active:scale-95 transition-all shadow-md"
+                      >
+                        <Minus className="size-4" />
+                      </Button>
+                      <div className="min-w-[56px] text-center font-black text-xl text-zinc-900 tabular-nums tracking-tighter">
+                        {currentKey}
+                      </div>
+                      <Button
+                        variant="yellow"
+                        size="icon-xs"
+                        onClick={() => setTranspose((t) => t + 1)}
+                        className="rounded-xl size-9 hover:scale-105 active:scale-95 transition-all shadow-md"
+                      >
+                        <Plus className="size-4" />
+                      </Button>
+                    </div>
+                    <div className="px-3 py-2 rounded-xl bg-zinc-100/50 text-[10px] font-bold text-zinc-500 border border-zinc-100/30">
+                      TOM ORIGINAL: <span className="text-zinc-900 ml-1">{song?.key}</span>
+                    </div>
                   </div>
-                  <Button
-                    variant="yellow"
-                    size="icon-xs"
-                    onClick={() => setTranspose((t) => t + 1)}
-                    className="rounded-lg size-7 md:size-8 shadow-md shadow-yellow-500/10 active:scale-95 transition-transform"
-                  >
-                    <Plus className="size-3.5 md:size-4" />
-                  </Button>
                 </div>
-
-                {setlist && (
-                  <div className="hidden md:flex items-center gap-2 p-1 rounded-full bg-zinc-50 border border-zinc-100 ml-2">
-                    <Button
-                      variant="ghost"
-                      size="icon-sm"
-                      onClick={goToPrev}
-                      disabled={songIndex <= 0}
-                      className="rounded-full size-7"
-                    >
-                      <ArrowLeft className="w-3.5 h-3.5" />
-                    </Button>
-                    <span className="text-[9px] font-bold text-zinc-400 tabular-nums px-1">
-                      {songIndex + 1}/{setlist.songs.length}
-                    </span>
-                    <Button
-                      variant="ghost"
-                      size="icon-sm"
-                      onClick={goToNext}
-                      disabled={songIndex >= setlist.songs.length - 1}
-                      className="rounded-full size-7"
-                    >
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </Button>
-                  </div>
-                )}
               </div>
 
-              <button
-                onClick={() => setAutoScroll(!autoScroll)}
-                className={cn(
-                  "flex items-center gap-2 px-4 md:px-6 py-2.5 md:py-3 rounded-lg md:rounded-xl transition-all duration-300 font-semibold uppercase tracking-wider text-[10px] md:text-xs",
-                  autoScroll
-                    ? "bg-yellow-500 text-black shadow-lg shadow-yellow-500/20"
-                    : "bg-zinc-100 text-zinc-500 hover:bg-zinc-200",
-                )}
-              >
-                {autoScroll ? (
-                  <Pause className="w-3 h-3 md:w-4 md:h-4 fill-current" />
-                ) : (
-                  <Play className="w-3 h-3 md:w-4 md:h-4 fill-current" />
-                )}
-                <span className="hidden xs:inline">
-                  {autoScroll ? "Pausar" : "Auto Scroll"}
-                </span>
-                <span className="xs:hidden">
-                  {autoScroll ? "Pausar" : "Scroll"}
-                </span>
-              </button>
+              {/* Module: Execução */}
+              <div className="flex-1 flex items-center gap-4 px-6 py-5">
+                <div className="flex flex-col w-full">
+                  <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-[0.2em] mb-2.5 opacity-60">
+                    Controles de Fluxo
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setAutoScroll(!autoScroll)}
+                      className={cn(
+                        "flex-1 h-11 px-6 rounded-2xl transition-all duration-300 font-bold uppercase tracking-widest text-[11px] flex items-center justify-center gap-3 border shadow-sm",
+                        autoScroll
+                          ? "bg-red-500 text-white border-red-600 shadow-red-500/20"
+                          : "bg-white text-zinc-900 border-zinc-200 hover:bg-zinc-50 hover:border-zinc-300",
+                      )}
+                    >
+                      {autoScroll ? (
+                        <>
+                          <div className="size-2 rounded-full bg-white animate-pulse" />
+                          Pausar Rolagem
+                        </>
+                      ) : (
+                        <>
+                          <Play className="size-4 fill-current text-zinc-400" />
+                          Auto Scroll
+                        </>
+                      )}
+                    </button>
+                    <button
+                      onClick={() => setPerformanceMode(true)}
+                      className="h-11 px-5 rounded-2xl bg-zinc-900 text-white hover:bg-black transition-all flex items-center gap-2 font-bold text-[11px] uppercase tracking-wider shadow-xl shadow-black/10 group"
+                    >
+                      <div className="size-2 rounded-full bg-green-500 group-hover:scale-125 transition-transform" />
+                      Live
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Module: Ferramentas (Futuras Opções) */}
+              <div className="flex items-center gap-4 px-6 py-5 bg-zinc-50/30">
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-[0.2em] mb-2.5 opacity-60">
+                    Visual
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setShowDiagrams(!showDiagrams)}
+                      className={cn(
+                        "h-11 px-4 rounded-2xl transition-all flex items-center gap-2 font-bold text-[11px] uppercase tracking-wider border",
+                        showDiagrams
+                          ? "bg-yellow-500 text-black border-yellow-600 shadow-lg shadow-yellow-500/20"
+                          : "bg-white text-zinc-500 border-zinc-200 hover:bg-zinc-50 hover:text-zinc-900",
+                      )}
+                    >
+                      <LayoutGrid className="size-4" />
+                      Shapes
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Module: Navegação */}
+              {setlist && (
+                <div className="flex items-center justify-center px-8 py-5 bg-zinc-50/80">
+                  <div className="flex items-center gap-5">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={goToPrev}
+                      disabled={songIndex <= 0}
+                      className="size-11 rounded-2xl border-zinc-200 bg-white hover:bg-zinc-50 transition-all active:scale-90"
+                    >
+                      <ArrowLeft className="size-5" />
+                    </Button>
+                    <div className="flex flex-col items-center min-w-[40px]">
+                      <span className="text-lg font-black text-zinc-900 tabular-nums leading-none">
+                        {songIndex + 1}
+                      </span>
+                      <span className="text-[9px] font-bold text-zinc-400 tabular-nums mt-1 uppercase tracking-tighter">
+                        de {setlist.songs.length}
+                      </span>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={goToNext}
+                      disabled={songIndex >= setlist.songs.length - 1}
+                      className="size-11 rounded-2xl border-zinc-200 bg-white hover:bg-zinc-50 transition-all active:scale-90"
+                    >
+                      <ArrowRight className="size-5" />
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -645,8 +662,8 @@ function SongViewer() {
           className={cn(
             "cifra-content transition-all duration-500 overflow-x-auto pb-8",
             performanceMode
-              ? "text-2xl sm:text-3xl md:text-4xl leading-[2.2] md:leading-[2.5] tracking-wide font-medium"
-              : "text-[15px] sm:text-lg md:text-xl leading-[2.2] text-zinc-800",
+              ? "text-[20px] sm:text-2xl md:text-4xl leading-[2.2] md:leading-[2.5] tracking-wide font-medium"
+              : "text-[13px] sm:text-base md:text-lg leading-[2.2] text-zinc-900 font-medium",
           )}
           style={{ whiteSpace: "pre", fontFamily: "monospace" }}
           dangerouslySetInnerHTML={{ __html: processedContent }}
@@ -656,7 +673,7 @@ function SongViewer() {
       </main>
 
       {!performanceMode && (
-        <div className="fixed bottom-6 md:bottom-8 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur-xl rounded-xl md:rounded-2xl px-6 md:px-8 py-3 md:py-5 flex items-center gap-6 md:gap-10 shadow-2xl border border-zinc-200 z-50 w-[90%] md:w-auto justify-evenly md:justify-start">
+        <div className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur-xl rounded-xl px-6 py-3 flex items-center gap-6 shadow-2xl border border-zinc-200 z-50 w-[90%] justify-evenly">
           <button
             className="group flex flex-col items-center gap-1 transition-all active:scale-95 text-zinc-400 hover:text-zinc-900"
             onClick={() => setAutoScroll(!autoScroll)}
