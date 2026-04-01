@@ -138,7 +138,9 @@ export function ChordWithTooltip({
   };
 
   const colorClasses: Record<string, string> = {
-    yellow: dark ? "text-yellow-500 hover:bg-yellow-500 hover:text-black" : "text-yellow-600 hover:bg-yellow-500 hover:text-white",
+    yellow: dark
+      ? "text-yellow-500 hover:bg-yellow-500 hover:text-black"
+      : "text-yellow-600 hover:bg-yellow-500 hover:text-white",
     blue: "text-blue-500 hover:bg-blue-500 hover:text-white",
     green: "text-green-500 hover:bg-green-500 hover:text-white",
     white: "text-white hover:bg-white hover:text-black",
@@ -152,13 +154,31 @@ export function ChordWithTooltip({
       <div
         ref={containerRef}
         className="relative inline-block cursor-help group"
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
+        onMouseEnter={() => {
+          if (typeof window !== 'undefined' && window.innerWidth >= 768) handleMouseEnter();
+        }}
+        onMouseLeave={() => {
+          if (typeof window !== 'undefined' && window.innerWidth >= 768) handleMouseLeave();
+        }}
       >
         <span
+          onClick={(e) => {
+            e.stopPropagation();
+            // On mobile, explicit toggle or open
+            if (typeof window !== 'undefined' && window.innerWidth < 768) {
+              if (isHovered) {
+                // If already open, clicking again can close it if not expanded
+                if (!isExpanded) setIsHovered(false);
+              } else {
+                handleMouseEnter();
+              }
+            } else {
+              handleMouseEnter();
+            }
+          }}
           className={cn(
             "transition-all px-1 py-0.5 rounded-md font-bold cursor-pointer active:scale-95",
-            selectedColorClass
+            selectedColorClass,
           )}
         >
           {chord}
@@ -169,206 +189,266 @@ export function ChordWithTooltip({
         createPortal(
           <AnimatePresence>
             {isHovered && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95, y: 5 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95, y: 5 }}
-                transition={{ duration: 0.15 }}
-                className="fixed z-[9999] pointer-events-auto"
-                onMouseEnter={handleMouseEnter}
-                onMouseLeave={handleMouseLeave}
-                style={{
-                  top: coords.y,
-                  left: coords.x,
-                  transform:
-                    coords.align === "left"
-                      ? "translate(0px, -100%)"
-                      : coords.align === "right"
-                        ? "translate(-100%, -100%)"
-                        : "translate(-50%, -100%)",
-                }}
-              >
-                <div className="bg-white rounded-2xl shadow-[0_15px_50px_-12px_rgba(0,0,0,0.25)] border border-zinc-200 p-4 overflow-hidden flex transition-all duration-300">
-                  <div
-                    className="w-full h-8 absolute top-0 left-0 opacity-[0.03]"
-                    style={{
-                      backgroundImage:
-                        "radial-gradient(#000 1.5px, transparent 0)",
-                      backgroundSize: "8px 8px",
-                    }}
-                  />
+              <>
+                {/* Backdrop for mobile to focus on the modal */}
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  onClick={() => setIsHovered(false)}
+                  className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[9998] md:hidden"
+                />
 
-                  <div className="flex flex-col items-center">
-                    <ChordDiagram
-                      name={chord}
-                      dark={false}
-                      variationIndex={
-                        isExpanded ? tempVariation : variationIndex
-                      }
-                      className="shadow-none border-none bg-transparent pt-3 pb-2 min-w-[120px]"
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                  animate={{
+                    opacity: 1,
+                    scale: 1,
+                    y: 0,
+                    ...(typeof window !== "undefined" && window.innerWidth < 768
+                      ? {
+                          top: "50%",
+                          left: "50%",
+                          x: "-50%",
+                          y: "-50%",
+                        }
+                      : {}),
+                  }}
+                  exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                  transition={{ type: "spring", damping: 25, stiffness: 300 }}
+                  className={cn(
+                    "fixed z-[9999] pointer-events-auto",
+                    isExpanded ? "w-[92%] max-w-[500px] md:w-auto" : "w-auto", // Fix for the white space: fit content when not expanded
+                  )}
+                  onMouseEnter={() => {
+                    if (
+                      typeof window !== "undefined" &&
+                      window.innerWidth >= 768
+                    )
+                      handleMouseEnter();
+                  }}
+                  onMouseLeave={() => {
+                    if (
+                      typeof window !== "undefined" &&
+                      window.innerWidth >= 768
+                    )
+                      handleMouseLeave();
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                  style={
+                    typeof window !== "undefined" && window.innerWidth >= 768
+                      ? {
+                          top: coords.y,
+                          left: coords.x,
+                          transform:
+                            coords.align === "left"
+                              ? "translate(0px, -100%)"
+                              : coords.align === "right"
+                                ? "translate(-100%, -100%)"
+                                : "translate(-50%, -100%)",
+                        }
+                      : {}
+                  }
+                >
+                  <div
+                    className={cn(
+                      "bg-white rounded-3xl shadow-[0_20px_70px_-10px_rgba(0,0,0,0.3)] border border-zinc-200 p-5 md:p-4 overflow-hidden flex transition-all duration-300",
+                      isExpanded ? "flex-col md:flex-row" : "flex-row", // Stack on mobile when expanded
+                    )}
+                  >
+                    <div
+                      className="w-full h-8 absolute top-0 left-0 opacity-[0.03]"
+                      style={{
+                        backgroundImage:
+                          "radial-gradient(#000 1.5px, transparent 0)",
+                        backgroundSize: "8px 8px",
+                      }}
                     />
 
-                    {!isExpanded && shapes.length > 1 && (
-                      <button
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          setTempVariation(variationIndex);
-                          setIsExpanded(true);
-                        }}
-                        className="mt-2 bg-yellow-500 hover:bg-yellow-400 text-black font-black text-xs px-5 py-2.5 rounded-full transition-all shadow-md active:scale-95"
-                      >
-                        variar acorde
-                      </button>
-                    )}
-                    {isExpanded && (
-                      <button
-                        disabled
-                        className="mt-2 bg-zinc-100 text-zinc-400 font-bold text-xs px-5 py-2.5 rounded-full cursor-not-allowed"
-                      >
-                        Variar Acorde
-                      </button>
-                    )}
-                  </div>
+                    <div className="flex flex-col items-center">
+                      <ChordDiagram
+                        name={chord}
+                        dark={false}
+                        variationIndex={
+                          isExpanded ? tempVariation : variationIndex
+                        }
+                        className="shadow-none border-none bg-transparent pt-3 pb-2 min-w-[120px] md:min-w-[140px]"
+                      />
 
-                  <AnimatePresence>
-                    {isExpanded && (
-                      <motion.div
-                        initial={{ width: 0, opacity: 0, marginLeft: 0 }}
-                        animate={{ width: "auto", opacity: 1, marginLeft: 24 }}
-                        exit={{ width: 0, opacity: 0, marginLeft: 0 }}
-                        transition={{ duration: 0.25, ease: "easeOut" }}
-                        className="flex flex-col border-l border-zinc-100 pl-6 overflow-hidden whitespace-nowrap"
-                      >
-                        <div className="relative group/scroll">
-                          {/* Navigation Arrows - Always Visible with Primary Background */}
-                          <div className="absolute top-1/2 -left-3 -translate-y-1/2 z-20">
-                            <button
-                              onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                scrollVariation("left");
-                              }}
-                              className="bg-yellow-500 shadow-lg border border-yellow-600/20 rounded-full p-2 hover:bg-yellow-400 transition-all active:scale-90"
-                            >
-                              <ChevronLeft className="w-4 h-4 text-black" strokeWidth={3} />
-                            </button>
-                          </div>
-                          
-                          <div className="absolute top-1/2 -right-3 -translate-y-1/2 z-20">
-                            <button
-                              onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                scrollVariation("right");
-                              }}
-                              className="bg-yellow-500 shadow-lg border border-yellow-600/20 rounded-full p-2 hover:bg-yellow-400 transition-all active:scale-90"
-                            >
-                              <ChevronRight className="w-4 h-4 text-black" strokeWidth={3} />
-                            </button>
-                          </div>
+                      {!isExpanded && shapes.length > 1 && (
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setTempVariation(variationIndex);
+                            setIsExpanded(true);
+                          }}
+                          className="mt-3 bg-yellow-500 hover:bg-yellow-400 text-black font-black text-[13px] px-6 py-3 rounded-full transition-all shadow-lg active:scale-95"
+                        >
+                          Variar Acorde
+                        </button>
+                      )}
 
-                          <div
-                            ref={scrollRef}
-                            onMouseDown={startDragging}
-                            onMouseLeave={stopDragging}
-                            onMouseUp={stopDragging}
-                            onMouseMove={onDragging}
-                            className={cn(
-                              "flex gap-6 overflow-x-auto overflow-y-hidden pb-4 snap-x max-w-[320px] md:max-w-[450px] items-start pt-3 no-scrollbar scroll-smooth",
-                              isDragging ? "cursor-grabbing" : "cursor-grab",
-                            )}
-                          >
-                            {shapes.map((_, i) => (
+                      {isExpanded && (
+                        <div className="md:hidden w-full h-px bg-zinc-100 my-4" />
+                      )}
+                    </div>
+
+                    <AnimatePresence>
+                      {isExpanded && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{
+                            height: "auto",
+                            opacity: 1,
+                            ...(typeof window !== "undefined" &&
+                            window.innerWidth >= 768
+                              ? { width: "auto", marginLeft: 24 }
+                              : {}),
+                          }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.3, ease: "easeOut" }}
+                          className="flex flex-col md:border-l border-zinc-100 md:pl-6 overflow-hidden"
+                        >
+                          <div className="relative group/scroll">
+                            {/* Navigation Arrows - Smaller on mobile */}
+                            <div className="absolute top-1/2 -left-2 md:-left-3 -translate-y-1/2 z-20">
                               <button
-                                key={i}
-                                onClick={() =>
-                                  !isDragging && setTempVariation(i)
-                                }
-                                onMouseDown={(e) => e.stopPropagation()} // Let the parent handle the drag
-                                className="group flex flex-col items-center flex-shrink-0 snap-center focus:outline-none"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  scrollVariation("left");
+                                }}
+                                className="bg-yellow-500 shadow-xl border border-yellow-600/20 rounded-full p-2.5 md:p-2 hover:bg-yellow-400 transition-all active:scale-90"
                               >
-                                <div
-                                  className={cn(
-                                    "transition-all duration-300 pointer-events-none",
-                                    tempVariation === i
-                                      ? "opacity-100 scale-100 drop-shadow-sm"
-                                      : "opacity-30 scale-90 hover:opacity-60",
-                                  )}
-                                >
-                                  <ChordDiagram
-                                    name={chord}
-                                    dark={false}
-                                    variationIndex={i}
-                                    className="shadow-none border-none bg-transparent p-0 min-w-[100px]"
-                                  />
-                                </div>
-                                <div
-                                  className={cn(
-                                    "h-1.5 w-1.5 rounded-full mt-3 transition-all duration-500",
-                                    tempVariation === i
-                                      ? "bg-yellow-500 scale-100"
-                                      : "bg-zinc-200 scale-50",
-                                  )}
+                                <ChevronLeft
+                                  className="w-5 h-5 md:w-4 md:h-4 text-black"
+                                  strokeWidth={3}
                                 />
                               </button>
-                            ))}
-                          </div>
-                        </div>
-
-                        <div className="flex items-center justify-between border-t border-zinc-100 pt-5 mt-auto w-full">
-                          <label className="flex items-center gap-3 text-sm font-bold text-zinc-600 cursor-pointer hover:text-zinc-900 transition-colors">
-                            <div className="relative flex items-center">
-                              <input
-                                type="checkbox"
-                                defaultChecked
-                                className="peer h-5 w-5 cursor-pointer appearance-none rounded-md border border-zinc-300 transition-all checked:border-zinc-900 checked:bg-zinc-900"
-                              />
-                              <svg
-                                className="absolute h-3.5 w-3.5 pointer-events-none opacity-0 peer-checked:opacity-100 stroke-white mt-0.5 ml-1"
-                                xmlns="http://www.w3.org/2000/svg"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                strokeWidth="4"
-                                stroke="currentColor"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  d="M4.5 12.75l6 6 9-13.5"
-                                />
-                              </svg>
                             </div>
-                            Mudar todos{" "}
-                            <b className="font-black text-black">{chord}</b>
-                          </label>
 
-                          <div className="flex items-center gap-4 pl-8">
-                            <button
-                              onClick={() => {
-                                setTempVariation(variationIndex);
-                                setIsExpanded(false);
-                              }}
-                              className="text-sm font-bold text-zinc-400 hover:text-zinc-600 px-3 py-2 transition-colors"
+                            <div className="absolute top-1/2 -right-2 md:-right-3 -translate-y-1/2 z-20">
+                              <button
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  scrollVariation("right");
+                                }}
+                                className="bg-yellow-500 shadow-xl border border-yellow-600/20 rounded-full p-2.5 md:p-2 hover:bg-yellow-400 transition-all active:scale-90"
+                              >
+                                <ChevronRight
+                                  className="w-5 h-5 md:w-4 md:h-4 text-black"
+                                  strokeWidth={3}
+                                />
+                              </button>
+                            </div>
+
+                            <div
+                              ref={scrollRef}
+                              onMouseDown={startDragging}
+                              onMouseLeave={stopDragging}
+                              onMouseUp={stopDragging}
+                              onMouseMove={onDragging}
+                              className={cn(
+                                "flex gap-6 md:gap-8 overflow-x-auto overflow-y-hidden pb-6 md:pb-4 snap-x max-w-[300px] md:max-w-[450px] items-start pt-3 no-scrollbar scroll-smooth",
+                                isDragging ? "cursor-grabbing" : "cursor-grab",
+                              )}
                             >
-                              Cancelar
-                            </button>
-                            <button
-                              onClick={() => {
-                                onVariationChange?.(chord, tempVariation);
-                                setIsExpanded(false);
-                              }}
-                              className="bg-yellow-500 hover:bg-yellow-400 text-black font-black text-sm px-8 py-3 rounded-xl transition-all shadow-[0_4px_14px_rgba(234,179,8,0.39)] active:scale-95 hover:shadow-[0_6px_20px_rgba(234,179,8,0.23)]"
-                            >
-                              Ok
-                            </button>
+                              {shapes.map((_, i) => (
+                                <button
+                                  key={i}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (!isDragging) setTempVariation(i);
+                                  }}
+                                  className="group flex flex-col items-center flex-shrink-0 snap-center focus:outline-none"
+                                >
+                                  <div
+                                    className={cn(
+                                      "transition-all duration-300 pointer-events-none",
+                                      tempVariation === i
+                                        ? "opacity-100 scale-110 drop-shadow-md"
+                                        : "opacity-25 scale-90 hover:opacity-50",
+                                    )}
+                                  >
+                                    <ChordDiagram
+                                      name={chord}
+                                      dark={false}
+                                      variationIndex={i}
+                                      className="shadow-none border-none bg-transparent p-0 min-w-[110px]"
+                                    />
+                                  </div>
+                                  <div
+                                    className={cn(
+                                      "h-2 w-2 rounded-full mt-4 transition-all duration-500",
+                                      tempVariation === i
+                                        ? "bg-yellow-500 scale-100 shadow-[0_0_10px_rgba(234,179,8,0.5)]"
+                                        : "bg-zinc-200 scale-50",
+                                    )}
+                                  />
+                                </button>
+                              ))}
+                            </div>
                           </div>
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              </motion.div>
+
+                          <div className="flex flex-col md:flex-row items-center justify-between border-t border-zinc-100 pt-6 mt-auto w-full gap-5 md:gap-0">
+                            <label className="flex items-center gap-3 text-[13px] md:text-sm font-bold text-zinc-600 cursor-pointer hover:text-zinc-900 transition-colors">
+                              <div className="relative flex items-center">
+                                <input
+                                  type="checkbox"
+                                  defaultChecked
+                                  className="peer h-6 w-6 md:h-5 md:w-5 cursor-pointer appearance-none rounded-lg border border-zinc-300 transition-all checked:border-zinc-900 checked:bg-zinc-900"
+                                />
+                                <svg
+                                  className="absolute h-4 w-4 md:h-3.5 md:w-3.5 pointer-events-none opacity-0 peer-checked:opacity-100 stroke-white mt-0.5 ml-1"
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  strokeWidth="4"
+                                  stroke="currentColor"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    d="M4.5 12.75l6 6 9-13.5"
+                                  />
+                                </svg>
+                              </div>
+                              Mudar todos{" "}
+                              <b className="font-black text-black ml-1">
+                                {chord}
+                              </b>
+                            </label>
+
+                            <div className="flex items-center gap-4 w-full md:w-auto">
+                              <button
+                                onClick={() => {
+                                  setTempVariation(variationIndex);
+                                  setIsExpanded(false);
+                                }}
+                                className="flex-1 md:flex-none text-sm font-bold text-zinc-400 hover:text-zinc-600 px-4 py-3 transition-colors"
+                              >
+                                Cancelar
+                              </button>
+                              <button
+                                onClick={() => {
+                                  onVariationChange?.(chord, tempVariation);
+                                  setIsExpanded(false);
+                                  setIsHovered(false);
+                                }}
+                                className="flex-1 md:flex-none bg-yellow-500 hover:bg-yellow-400 text-black font-black text-sm px-10 py-3.5 rounded-2xl transition-all shadow-xl active:scale-95"
+                              >
+                                Ok
+                              </button>
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                </motion.div>
+              </>
             )}
           </AnimatePresence>,
           document.body,
