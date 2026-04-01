@@ -22,8 +22,11 @@ import {
   Minus,
   Music,
   Pause,
+  Palette,
   Play,
   Plus,
+  Settings,
+  Type,
 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -39,22 +42,9 @@ import { NOTES, transposeChord } from "@/lib/chords";
 import { ChordDiagram } from "@/components/chord-diagram";
 import { CifraRenderer } from "./cifra-renderer";
 
-const FONT_SIZE_CLASSES: Record<string, string> = {
-  small: "text-[12px] sm:text-[13px] md:text-[15px]",
-  medium: "text-[13px] sm:text-base md:text-lg",
-  large: "text-[15px] sm:text-lg md:text-xl",
-  xlarge: "text-[17px] sm:text-xl md:text-2xl",
-};
-
-const PERFORMANCE_FONT_SIZE_CLASSES: Record<string, string> = {
-  small: "text-[18px] sm:text-xl md:text-2xl",
-  medium: "text-[20px] sm:text-2xl md:text-4xl",
-  large: "text-[24px] sm:text-3xl md:text-5xl",
-  xlarge: "text-[28px] sm:text-4xl md:text-6xl",
-};
 
 export function SongViewer() {
-  const { user } = useAuth();
+  const { user, updateProfile } = useAuth();
   const searchParams = useSearchParams();
   const router = useRouter();
   const rawUrl = searchParams.get("url");
@@ -123,6 +113,41 @@ export function SongViewer() {
   const [showDiagrams, setShowDiagrams] = useState(false);
   const [showSetlistSelector, setShowSetlistSelector] = useState(false);
   const [variationsMap, setVariationsMap] = useState<Record<string, number>>({});
+  const [showSettings, setShowSettings] = useState(false);
+
+  const [localFontSize, setLocalFontSize] = useState<string>("medium");
+  const [localChordColor, setLocalChordColor] = useState<string>("yellow");
+
+  useEffect(() => {
+    // Priority 1: User profile if logged in
+    if (user && !showSettings) {
+      setLocalFontSize(user.font_size || "medium");
+      setLocalChordColor(user.chord_color || "yellow");
+    } 
+    // Priority 2: LocalStorage for guest users
+    else if (!user && typeof window !== 'undefined') {
+      const savedFontSize = localStorage.getItem("h_font_size");
+      const savedChordColor = localStorage.getItem("h_chord_color");
+      if (savedFontSize) setLocalFontSize(savedFontSize);
+      if (savedChordColor) setLocalChordColor(savedChordColor);
+    }
+  }, [user, showSettings]);
+
+  const handleUpdateSettings = async (updates: { font_size?: string; chord_color?: string }) => {
+    if (updates.font_size) {
+      setLocalFontSize(updates.font_size);
+      if (typeof window !== 'undefined') localStorage.setItem("h_font_size", updates.font_size);
+    }
+    if (updates.chord_color) {
+      setLocalChordColor(updates.chord_color);
+      if (typeof window !== 'undefined') localStorage.setItem("h_chord_color", updates.chord_color);
+    }
+    
+    // Save to profile if logged in
+    if (user) {
+      await updateProfile(updates);
+    }
+  };
 
   // Sync variations from DB if viewing inside a setlist
   useEffect(() => {
@@ -331,6 +356,22 @@ export function SongViewer() {
               </p>
             </div>
             <div className="flex items-center gap-2 px-1">
+              <button
+                onClick={() => setShowSettings(!showSettings)}
+                className={cn(
+                  "p-2 rounded-lg transition-all",
+                  showSettings
+                    ? "bg-zinc-900 text-white"
+                    : "hover:bg-zinc-100 text-zinc-400 hover:text-zinc-900",
+                )}
+                title="Configurações de Exibição"
+              >
+                <div className="relative">
+                  <Type className="w-5 h-5" />
+                  <Settings className="w-2.5 h-2.5 absolute -right-0.5 -bottom-0.5 bg-white rounded-full p-0.5 text-zinc-900" strokeWidth={3} />
+                </div>
+              </button>
+
               {!setlistId && (
                 <button
                   onClick={() => setShowSetlistSelector(!showSetlistSelector)}
@@ -353,6 +394,76 @@ export function SongViewer() {
               </button>
             </div>
           </div>
+
+          <AnimatePresence>
+            {showSettings && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="absolute right-4 md:right-6 top-16 w-72 bg-white border border-zinc-200 shadow-2xl rounded-3xl p-5 z-50"
+              >
+                <div className="space-y-6">
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-zinc-400">
+                      <Type className="w-3 h-3" /> Tamanho da Letra
+                    </div>
+                    <div className="flex bg-zinc-100 p-1 rounded-xl">
+                      {[
+                        { id: "xxsmall", label: "PPP" },
+                        { id: "xsmall", label: "PP" },
+                        { id: "small", label: "P" },
+                        { id: "medium", label: "M" },
+                        { id: "large", label: "G" },
+                        { id: "xlarge", label: "XG" },
+                      ].map((s) => (
+                        <button
+                          key={s.id}
+                          onClick={() => handleUpdateSettings({ font_size: s.id })}
+                          className={cn(
+                            "flex-1 py-2 text-[10px] font-bold rounded-lg transition-all",
+                            localFontSize === s.id
+                              ? "bg-white text-zinc-900 shadow-sm"
+                              : "text-zinc-400 hover:text-zinc-600",
+                          )}
+                        >
+                          {s.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-zinc-400">
+                      <Palette className="w-3 h-3" /> Cor dos Acordes
+                    </div>
+                    <div className="flex flex-wrap gap-2 justify-between">
+                      {[
+                        { id: "yellow", color: "bg-yellow-500" },
+                        { id: "blue", color: "bg-blue-500" },
+                        { id: "green", color: "bg-green-500" },
+                        { id: "white", color: "bg-zinc-200" },
+                        { id: "orange", color: "bg-orange-500" },
+                      ].map((c) => (
+                        <button
+                          key={c.id}
+                          onClick={() => handleUpdateSettings({ chord_color: c.id })}
+                          className={cn(
+                            "w-8 h-8 rounded-full border-2 transition-all p-0.5",
+                            localChordColor === c.id
+                              ? "border-zinc-900 scale-110"
+                              : "border-transparent",
+                          )}
+                        >
+                          <div className={cn("w-full h-full rounded-full", c.color)} />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           <AnimatePresence>
             {showSetlistSelector && (
@@ -691,18 +802,35 @@ export function SongViewer() {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8 }}
           className={cn(
-            "cifra-content transition-all duration-500 overflow-x-auto pb-8 relative",
-            performanceMode
-              ? cn(PERFORMANCE_FONT_SIZE_CLASSES[user?.font_size || "medium"], "leading-[2.2] md:leading-[2.5] tracking-wide font-medium")
-              : cn(FONT_SIZE_CLASSES[user?.font_size || "medium"], "leading-[2.2] text-zinc-900 font-medium"),
+            "cifra-content transition-all duration-300 overflow-x-auto pb-8 relative",
+            performanceMode ? "tracking-wide font-medium" : "text-zinc-900 font-medium"
           )}
-          style={{ whiteSpace: "pre", fontFamily: "monospace" }}
+          style={{ 
+            whiteSpace: "pre", 
+            fontFamily: "monospace",
+            fontSize: performanceMode 
+              ? (
+                localFontSize === 'xxsmall' ? '12px' : 
+                localFontSize === 'xsmall' ? '14px' :
+                localFontSize === 'small' ? '18px' : 
+                localFontSize === 'medium' ? '24px' : 
+                localFontSize === 'large' ? '36px' : '48px'
+              ) 
+              : (
+                localFontSize === 'xxsmall' ? '9px' : 
+                localFontSize === 'xsmall' ? '10px' :
+                localFontSize === 'small' ? '11px' : 
+                localFontSize === 'medium' ? '14px' : 
+                localFontSize === 'large' ? '18px' : '22px'
+              ),
+            lineHeight: performanceMode ? '2.1' : '1.9'
+          }}
         >
           <CifraRenderer
             content={song?.content || ""}
             transpose={transpose}
             performanceMode={performanceMode}
-            chordColor={user?.chord_color || "yellow"}
+            chordColor={localChordColor}
             variations={variationsMap}
             onVariationChange={handleVariationChange}
           />

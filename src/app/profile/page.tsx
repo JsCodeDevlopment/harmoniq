@@ -257,6 +257,8 @@ function ProfileDashboard() {
                       </label>
                       <div className="flex flex-wrap gap-2">
                         {[
+                          { id: "xxsmall", label: "PPP", size: "text-[9px]" },
+                          { id: "xsmall", label: "PP", size: "text-[10px]" },
                           { id: "small", label: "P", size: "text-xs" },
                           { id: "medium", label: "M", size: "text-sm" },
                           { id: "large", label: "G", size: "text-base" },
@@ -267,7 +269,7 @@ function ProfileDashboard() {
                             type="button"
                             onClick={() => setFontSize(s.id)}
                             className={cn(
-                              "h-10 px-4 rounded-xl border font-bold transition-all",
+                              "h-10 px-3 sm:px-4 rounded-xl border font-bold transition-all",
                               fontSize === s.id
                                 ? "bg-yellow-500 text-black border-yellow-500"
                                 : "bg-white/5 border-white/5 text-zinc-500 hover:bg-white/10",
