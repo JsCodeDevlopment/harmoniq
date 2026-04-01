@@ -1,33 +1,61 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { CHORD_SHAPES_MOCK } from "@/mocks/chords.mock";
+import { getChordsForName } from "@/lib/chords";
 
 export function ChordDiagram({
   name,
   dark,
   className,
+  variationIndex = 0,
 }: {
   name: string;
   dark?: boolean;
   className?: string;
+  variationIndex?: number;
 }) {
-  const getShape = (n: string) => {
-    const base = n.split("/")[0];
-    return (
-      CHORD_SHAPES_MOCK[base] || {
-        fingers: [
-          [2, 2, "1"],
-          [3, 3, "2"],
-          [4, 2, "3"],
-        ],
-        open: [0, 1, 2],
-        muted: [5],
-      }
-    );
+  const shapes = getChordsForName(name);
+  const shape = shapes[variationIndex] || shapes[0];
+
+  if (!shape) return null;
+
+  // Transformar frets em dedos, open e muted para renderização
+  // frets: [E, A, D, G, B, e]
+  const renderData = {
+    fingers: [] as { f: number; s: number; label?: string }[],
+    open: [] as number[],
+    muted: [] as number[],
+    baseFret: shape.baseFret,
+    isBarre: shape.isBarre,
   };
 
-  const shape = getShape(name);
+  // A janela de visualização sempre mostra 5 trastes.
+  // Se estivermos nas casas iniciais (0-4), começamos na 1.
+  // Se estivermos mais à frente, centralizamos ou começamos na baseFret.
+  const displayStartFret = shape.baseFret === 0 ? 1 : Math.max(1, shape.baseFret);
+
+  shape.frets.forEach((fret, i) => {
+    const visualString = i + 1; // 1 to 6 (E to e)
+
+    if (fret === null) {
+      renderData.muted.push(visualString);
+    } else if (fret === 0) {
+      renderData.open.push(visualString);
+    } else {
+      // Calcular a casa relativa para exibição (1 a 5 no diagrama)
+      const relativeFret = fret - displayStartFret + 1;
+      const fingerIndex = renderData.fingers.length;
+      const fingerLabel = shape.fingers && shape.fingers[fingerIndex] !== undefined 
+        ? String(shape.fingers[fingerIndex]) 
+        : undefined;
+
+      renderData.fingers.push({
+        f: relativeFret,
+        s: visualString,
+        label: fingerLabel
+      });
+    }
+  });
 
   return (
     <div
@@ -65,14 +93,15 @@ export function ChordDiagram({
           />
         ))}
 
-        {/* Nut (Traste 0) */}
+        {/* Nut (Traste 0) - Só visível se displayStartFret for 1 e baseFret for 0 */}
         <line
           x1="15"
           y1="10"
           x2="65"
           y2="10"
           stroke={dark ? "#71717a" : "#334155"}
-          strokeWidth="3"
+          strokeWidth={renderData.baseFret === 0 ? "3" : "1"}
+          className={renderData.baseFret === 0 ? "opacity-100" : "opacity-30"}
         />
 
         {/* Frets (Horizontal) */}
@@ -88,34 +117,59 @@ export function ChordDiagram({
           />
         ))}
 
-        {/* Fingers with numbers */}
-        {shape.fingers.map(([f, s, label], i) => (
+        {/* Base Fret Marker e.g. "3fr" if baseFret > 0 */}
+        {renderData.baseFret > 0 && (
+          <text
+            x="5"
+            y="22"
+            fontSize="7"
+            fontWeight="bold"
+            fill={dark ? "#94A3B8" : "#64748B"}
+          >
+            {renderData.baseFret}fr
+          </text>
+        )}
+
+        {/* Barra (Barre modifier) */}
+        {renderData.isBarre && renderData.fingers.length > 0 && (
+          <rect
+            x="13"
+            y={10 + (renderData.fingers[0].f - 0.5) * 15 - 5}
+            width="54"
+            height="10"
+            rx="5"
+            fill={dark ? "#FFF" : "#1E293B"}
+            className="opacity-90"
+          />
+        )}
+
+        {/* Fingers */}
+        {renderData.fingers.map((finger, i) => (
           <g key={i}>
             <circle
-              cx={15 + (Number(s) - 1) * 10}
-              cy={10 + (Number(f) - 0.5) * 15}
+              cx={15 + (Number(finger.s) - 1) * 10}
+              cy={10 + (Number(finger.f) - 0.5) * 15}
               r="4.5"
               fill={dark ? "#FFF" : "#1E293B"}
             />
             <text
-              x={15 + (Number(s) - 1) * 10}
-              y={10 + (Number(f) - 0.5) * 15 + 1.5}
+              x={15 + (Number(finger.s) - 1) * 10}
+              y={10 + (Number(finger.f) - 0.5) * 15 + 1.5}
               textAnchor="middle"
               fontSize="4.5"
               fontWeight="900"
               fill={dark ? "#000" : "#FFF"}
               fontFamily="monospace"
             >
-              {label || i + 1}
+              {finger.label || ""}
             </text>
           </g>
         ))}
 
-        {/* Markers at bottom */}
+        {/* Markers at bottom (Muted/Open) */}
         {[1, 2, 3, 4, 5, 6].map((s) => {
-          const stringIndex = 7 - s; // 6, 5, 4, 3, 2, 1
-          const isMuted = shape.muted?.includes(stringIndex - 1);
-          const isOpen = shape.open?.includes(stringIndex - 1);
+          const isMuted = renderData.muted.includes(s);
+          const isOpen = renderData.open.includes(s);
 
           if (isMuted)
             return (
@@ -148,3 +202,4 @@ export function ChordDiagram({
     </div>
   );
 }
+

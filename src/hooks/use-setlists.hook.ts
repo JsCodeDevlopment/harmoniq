@@ -11,6 +11,7 @@ export interface SetlistItem {
   url: string;
   key: string;
   order: number;
+  chord_variations?: string;
 }
 
 export interface Setlist {
@@ -133,13 +134,24 @@ export function useSetlist(id: string | number) {
     },
   });
 
+  const updateSongMutation = useMutation({
+    mutationFn: async ({ songId, key, chord_variations }: { songId: number, key: string, chord_variations: string }) => {
+      const response = await api.patch(`/setlists/${id}/songs/${songId}`, { key, chord_variations });
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["setlist", id] });
+    },
+  });
+
   return { 
     setlist, 
     isLoading, 
     addSong: addSongMutation.mutateAsync, 
     removeSong: removeSongMutation.mutateAsync, 
     togglePublic: togglePublicMutation.mutateAsync,
-    renameSetlist: renameMutation.mutateAsync
+    renameSetlist: renameMutation.mutateAsync,
+    updateSong: updateSongMutation.mutateAsync
   };
 }
 
