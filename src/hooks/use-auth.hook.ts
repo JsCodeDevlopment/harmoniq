@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import api from "@/lib/api";
+import Cookies from "js-cookie";
 
 export interface User {
   id: number;
@@ -18,7 +19,7 @@ export function useAuth() {
   const router = useRouter();
 
   const loadUser = useCallback(async () => {
-    const token = localStorage.getItem("harmoniq_auth_token");
+    const token = Cookies.get("harmoniq_auth_token");
     if (!token) {
       setIsInitializing(false);
       return;
@@ -29,7 +30,7 @@ export function useAuth() {
       setUser(response.data);
     } catch (err) {
       console.error("Failed to load user:", err);
-      localStorage.removeItem("harmoniq_auth_token");
+      Cookies.remove("harmoniq_auth_token");
       setUser(null);
     } finally {
       setIsInitializing(false);
@@ -44,7 +45,7 @@ export function useAuth() {
     try {
       const response = await api.post("/auth/login", { email, password });
       const { accessToken } = response.data;
-      localStorage.setItem("harmoniq_auth_token", accessToken);
+      Cookies.set("harmoniq_auth_token", accessToken, { expires: 7 }); // Persist for 7 days
       await loadUser();
       router.push("/");
       return { success: true };
@@ -62,7 +63,7 @@ export function useAuth() {
     try {
       const response = await api.post("/auth/register", { name, email, password });
       const { accessToken } = response.data;
-      localStorage.setItem("harmoniq_auth_token", accessToken);
+      Cookies.set("harmoniq_auth_token", accessToken, { expires: 7 });
       await loadUser();
       router.push("/");
       return { success: true };
@@ -77,7 +78,7 @@ export function useAuth() {
   };
 
   const logout = useCallback(() => {
-    localStorage.removeItem("harmoniq_auth_token");
+    Cookies.remove("harmoniq_auth_token");
     setUser(null);
     router.push("/");
   }, [router]);

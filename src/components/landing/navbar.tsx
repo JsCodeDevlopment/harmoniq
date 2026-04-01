@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Menu, Music, X } from "lucide-react";
+import { Menu, Music, User, ListMusic, X, LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth.hook";
@@ -40,21 +40,25 @@ export function Navbar() {
 
         <div className="hidden md:flex items-center gap-3">
           {isAuthenticated ? (
-            <div className="flex items-center gap-4">
-              <button 
+            <div className="flex items-center gap-3">
+              <Button
+                variant="ghost"
                 onClick={() => router.push("/profile")}
-                className="text-zinc-400 text-sm font-medium hover:text-white transition-colors cursor-pointer"
+                className="text-white hover:bg-white/5 font-bold text-[13px] gap-2 rounded-xl h-10 px-4 border border-white/5 transition-all"
               >
-                Olá, <span className="text-white font-bold">{user?.name}</span>
-              </button>
-              <div className="w-px h-4 bg-white/10" />
-              <Button 
-                variant="ghost" 
-                className="text-zinc-500 hover:text-white font-medium text-sm cursor-pointer h-auto p-0"
-                onClick={logout}
-              >
-                Sair
+                <div className="w-6 h-6 rounded-full bg-yellow-500/10 flex items-center justify-center border border-yellow-500/20">
+                    <User className="w-3.5 h-3.5 text-yellow-500" strokeWidth={2.5} />
+                </div>
+                Meus Repertórios
               </Button>
+              <div className="w-px h-4 bg-white/10 mx-1" />
+              <button 
+                onClick={logout}
+                className="p-2 text-zinc-500 hover:text-red-500 hover:bg-red-500/5 rounded-lg transition-all"
+                title="Sair"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
             </div>
           ) : (
             <>

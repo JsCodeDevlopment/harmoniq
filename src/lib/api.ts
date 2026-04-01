@@ -1,4 +1,5 @@
 import axios from 'axios';
+import Cookies from 'js-cookie';
 
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/api/v1',
@@ -8,7 +9,7 @@ const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('harmoniq_auth_token') : null;
+  const token = Cookies.get("harmoniq_auth_token");
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
