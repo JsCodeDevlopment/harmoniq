@@ -15,6 +15,7 @@ import { useGetSong } from "@/hooks/use-songs.hook";
 import { useAuth } from "@/hooks/use-auth.hook";
 import { NOTES, transposeChord } from "@/lib/chords";
 import { ChordDiagram } from "@/components/chord-diagram";
+import { KeyboardDiagram } from "@/components/keyboard-diagram";
 import { CifraRenderer } from "./cifra-renderer";
 import { Button } from "@/components/ui/button";
 
@@ -118,21 +119,25 @@ export function SongViewer() {
 
   const [localFontSize, setLocalFontSize] = useState<string>("medium");
   const [localChordColor, setLocalChordColor] = useState<string>("yellow");
+  const [localInstrument, setLocalInstrument] = useState<string>("guitar");
 
   useEffect(() => {
     if (user && !showSettings) {
       setLocalFontSize(user.font_size || "medium");
       setLocalChordColor(user.chord_color || "yellow");
+      setLocalInstrument(user.instrument || "guitar");
     } 
     else if (!user && typeof window !== 'undefined') {
       const savedFontSize = localStorage.getItem("h_font_size");
       const savedChordColor = localStorage.getItem("h_chord_color");
+      const savedInstrument = localStorage.getItem("h_instrument");
       if (savedFontSize) setLocalFontSize(savedFontSize);
       if (savedChordColor) setLocalChordColor(savedChordColor);
+      if (savedInstrument) setLocalInstrument(savedInstrument);
     }
   }, [user, showSettings]);
 
-  const handleUpdateSettings = async (updates: { font_size?: string; chord_color?: string }) => {
+  const handleUpdateSettings = async (updates: { font_size?: string; chord_color?: string; instrument?: string }) => {
     if (updates.font_size) {
       setLocalFontSize(updates.font_size);
       if (typeof window !== 'undefined') localStorage.setItem("h_font_size", updates.font_size);
@@ -140,6 +145,10 @@ export function SongViewer() {
     if (updates.chord_color) {
       setLocalChordColor(updates.chord_color);
       if (typeof window !== 'undefined') localStorage.setItem("h_chord_color", updates.chord_color);
+    }
+    if (updates.instrument) {
+      setLocalInstrument(updates.instrument);
+      if (typeof window !== 'undefined') localStorage.setItem("h_instrument", updates.instrument);
     }
     if (user) {
       await updateProfile(updates);
@@ -338,6 +347,7 @@ export function SongViewer() {
           setPerformanceMode={setPerformanceMode}
           localFontSize={localFontSize}
           localChordColor={localChordColor}
+          localInstrument={localInstrument}
           handleUpdateSettings={handleUpdateSettings}
           setlists={setlists}
           handleAddToSetlist={handleAddToSetlist}
@@ -345,6 +355,11 @@ export function SongViewer() {
           selectorRef={selectorRef}
           settingsBtnRef={settingsBtnRef}
           selectorBtnRef={selectorBtnRef}
+          simplifiedUrl={song?.simplified_url}
+          principalUrl={song?.principal_url}
+          keyboardUrl={song?.keyboard_url}
+          currentUrl={url}
+          onVersionChange={handleVersionChange}
         />
       )}
 
@@ -382,8 +397,13 @@ export function SongViewer() {
             goToNext={goToNext}
             simplifiedUrl={song?.simplified_url}
             principalUrl={song?.principal_url}
+            keyboardUrl={song?.keyboard_url}
             currentUrl={url}
             onVersionChange={handleVersionChange}
+            localFontSize={localFontSize}
+            localChordColor={localChordColor}
+            localInstrument={localInstrument}
+            handleUpdateSettings={handleUpdateSettings}
           />
         )}
 
@@ -394,7 +414,13 @@ export function SongViewer() {
                 <div className={cn("p-4 md:p-6 rounded-2xl border transition-colors", performanceMode ? "bg-zinc-900 border-white/5" : "bg-white border-zinc-200 shadow-sm")}>
                   <h3 className={cn("text-[10px] font-bold uppercase tracking-widest mb-6 block", performanceMode ? "text-zinc-500" : "text-zinc-400")}>Diagramas da Música</h3>
                   <div className="flex flex-wrap gap-6 md:gap-8">
-                    {uniqueChords.map((chord) => (<ChordDiagram key={chord} name={chord} dark={performanceMode} variationIndex={variationsMap[chord] || 0} />))}
+                    {uniqueChords.map((chord) => (
+                      localInstrument === "keyboard" ? (
+                        <KeyboardDiagram key={chord} name={chord} dark={performanceMode} />
+                      ) : (
+                        <ChordDiagram key={chord} name={chord} dark={performanceMode} variationIndex={variationsMap[chord] || 0} />
+                      )
+                    ))}
                   </div>
                 </div>
               </motion.div>
@@ -402,7 +428,7 @@ export function SongViewer() {
           </AnimatePresence>
 
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.8 }} className={cn("cifra-content transition-all duration-300 overflow-x-auto pb-8 relative", performanceMode ? "tracking-wide font-medium" : "text-zinc-900 font-medium")} style={{ whiteSpace: "pre", fontFamily: "monospace", fontSize: performanceMode ? (localFontSize === 'xxsmall' ? '12px' : localFontSize === 'xsmall' ? '14px' : localFontSize === 'small' ? '18px' : localFontSize === 'medium' ? '24px' : localFontSize === 'large' ? '36px' : '48px') : (localFontSize === 'xxsmall' ? '9px' : localFontSize === 'xsmall' ? '10px' : localFontSize === 'small' ? '11px' : localFontSize === 'medium' ? '14px' : localFontSize === 'large' ? '18px' : '22px'), lineHeight: performanceMode ? '2.1' : '1.9' }}>
-            <CifraRenderer content={song?.content || ""} transpose={transpose} performanceMode={performanceMode} chordColor={localChordColor} variations={variationsMap} onVariationChange={handleVariationChange} />
+            <CifraRenderer content={song?.content || ""} transpose={transpose} performanceMode={performanceMode} chordColor={localChordColor} instrument={localInstrument} variations={variationsMap} onVariationChange={handleVariationChange} />
           </motion.div>
           <div className="h-48" />
         </div>

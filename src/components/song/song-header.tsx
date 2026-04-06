@@ -8,7 +8,9 @@ import {
   Settings, 
   ListMusic, 
   Maximize2,
-  Check
+  Check,
+  Zap,
+  Music
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { SettingsPopover } from "./popovers/settings-popover";
@@ -28,6 +30,7 @@ export function SongHeader({
   setPerformanceMode,
   localFontSize,
   localChordColor,
+  localInstrument,
   handleUpdateSettings,
   setlists,
   handleAddToSetlist,
@@ -35,6 +38,11 @@ export function SongHeader({
   selectorRef,
   settingsBtnRef,
   selectorBtnRef,
+  simplifiedUrl,
+  principalUrl,
+  keyboardUrl,
+  currentUrl,
+  onVersionChange,
 }: SongHeaderProps) {
   const router = useRouter();
   const isSaved = typeof window !== 'undefined' ? localStorage.getItem(`song:${url}`) : false;
@@ -71,7 +79,7 @@ export function SongHeader({
           <button 
             ref={settingsBtnRef}
             onClick={() => setShowSettings(!showSettings)} 
-            className={cn("p-2 rounded-lg transition-all", showSettings ? "bg-zinc-900 text-white" : "hover:bg-zinc-100 text-zinc-400 hover:text-zinc-900")} 
+            className={cn("p-2 rounded-lg transition-all md:hidden", showSettings ? "bg-zinc-900 text-white" : "hover:bg-zinc-100 text-zinc-400 hover:text-zinc-900")} 
             title="Configurações de Exibição"
           >
             <div className="relative">
@@ -100,10 +108,52 @@ export function SongHeader({
         </div>
       </div>
 
+      {/* Mobile-only Version Selector */}
+      {(simplifiedUrl || keyboardUrl) && (
+        <div className="md:hidden flex items-center justify-center gap-2 pb-3 px-4">
+           {principalUrl && (
+             <button
+               onClick={() => onVersionChange?.(principalUrl)}
+               className={cn(
+                 "flex-1 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-tight border transition-all",
+                 currentUrl !== simplifiedUrl && currentUrl !== keyboardUrl ? "bg-zinc-900 text-white border-zinc-900" : "bg-white text-zinc-400 border-zinc-100"
+               )}
+             >
+               Principal
+             </button>
+           )}
+           {simplifiedUrl && (
+             <button
+               onClick={() => onVersionChange?.(simplifiedUrl)}
+               className={cn(
+                 "flex-1 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-tight border transition-all flex items-center justify-center gap-1",
+                 currentUrl === simplifiedUrl ? "bg-yellow-500 text-black border-yellow-500" : "bg-white text-zinc-400 border-zinc-100"
+               )}
+             >
+               <Zap className="size-3 fill-current" />
+               Simples
+             </button>
+           )}
+           {keyboardUrl && (
+             <button
+               onClick={() => onVersionChange?.(keyboardUrl)}
+               className={cn(
+                 "flex-1 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-tight border transition-all flex items-center justify-center gap-1",
+                 currentUrl === keyboardUrl ? "bg-blue-500 text-white border-blue-500" : "bg-white text-zinc-400 border-zinc-100"
+               )}
+             >
+               <Music className="size-3 fill-current" />
+               Teclado
+             </button>
+           )}
+        </div>
+      )}
+
       <SettingsPopover 
         isOpen={showSettings}
         localFontSize={localFontSize}
         localChordColor={localChordColor}
+        localInstrument={localInstrument}
         onUpdate={handleUpdateSettings}
         popoverRef={settingsRef}
       />

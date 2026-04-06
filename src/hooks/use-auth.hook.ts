@@ -13,6 +13,7 @@ export interface User {
   avatar: string;
   font_size?: string;
   chord_color?: string;
+  instrument?: string;
 }
 
 export function useAuth() {

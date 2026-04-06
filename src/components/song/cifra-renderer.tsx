@@ -9,6 +9,7 @@ export function CifraRenderer({
   transpose,
   performanceMode,
   chordColor = "yellow",
+  instrument = "guitar",
   variations = {},
   onVariationChange,
 }: {
@@ -16,6 +17,7 @@ export function CifraRenderer({
   transpose: number;
   performanceMode?: boolean;
   chordColor?: string;
+  instrument?: string;
   variations?: Record<string, number>;
   onVariationChange?: (chord: string, idx: number) => void;
 }) {
@@ -44,6 +46,7 @@ export function CifraRenderer({
                 chord={transposed}
                 dark={performanceMode}
                 customColor={chordColor}
+                instrument={instrument}
                 variationIndex={variations[transposed] || 0}
                 onVariationChange={onVariationChange}
               />
@@ -72,5 +75,5 @@ export function CifraRenderer({
     };
 
     return convertToReact(div.childNodes);
-  }, [content, transpose, performanceMode, variations, onVariationChange, chordColor]);
+  }, [content, transpose, performanceMode, variations, onVariationChange, chordColor, instrument]);
 }

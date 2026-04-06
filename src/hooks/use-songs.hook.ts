@@ -12,6 +12,7 @@ export interface Song {
   chords: string[];
   simplified_url?: string;
   principal_url?: string;
+  keyboard_url?: string;
 }
 
 export function useSearchSongs(query: string) {

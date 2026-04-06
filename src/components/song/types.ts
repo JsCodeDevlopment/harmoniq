@@ -29,13 +29,20 @@ export interface SongHeaderProps {
   setPerformanceMode: (val: boolean) => void;
   localFontSize: string;
   localChordColor: string;
-  handleUpdateSettings: (updates: { font_size?: string; chord_color?: string }) => void;
+  localInstrument?: string;
+  handleUpdateSettings: (updates: { font_size?: string; chord_color?: string; instrument?: string }) => void;
   setlists: Setlist[];
   handleAddToSetlist: (id: number) => void;
   settingsRef: RefObject<HTMLDivElement | null>;
   selectorRef: RefObject<HTMLDivElement | null>;
   settingsBtnRef: RefObject<HTMLButtonElement | null>;
   selectorBtnRef: RefObject<HTMLButtonElement | null>;
+  // Version props for mobile
+  simplifiedUrl?: string;
+  principalUrl?: string;
+  keyboardUrl?: string;
+  currentUrl: string;
+  onVersionChange?: (url: string) => void;
 }
 
 export interface SongUtilityBarProps {
@@ -55,8 +62,14 @@ export interface SongUtilityBarProps {
   goToNext: () => void;
   simplifiedUrl?: string;
   principalUrl?: string;
+  keyboardUrl?: string;
   currentUrl: string;
   onVersionChange: (url: string) => void;
+  // Settings props
+  localFontSize: string;
+  localChordColor: string;
+  localInstrument: string;
+  handleUpdateSettings: (updates: { font_size?: string; chord_color?: string; instrument?: string }) => void;
 }
 
 export interface PerformanceHeaderProps {

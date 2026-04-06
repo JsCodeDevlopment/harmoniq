@@ -1,6 +1,7 @@
 "use client";
 
 import { ChordDiagram } from "@/components/chord-diagram";
+import { KeyboardDiagram } from "@/components/keyboard-diagram";
 import { getChordsForName } from "@/lib/chords";
 import { cn } from "@/lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
@@ -12,12 +13,14 @@ export function ChordWithTooltip({
   chord,
   dark,
   customColor = "yellow",
+  instrument = "guitar",
   variationIndex = 0,
   onVariationChange,
 }: {
   chord: string;
   dark?: boolean;
   customColor?: string;
+  instrument?: string;
   variationIndex?: number;
   onVariationChange?: (chord: string, idx: number) => void;
 }) {
@@ -266,16 +269,24 @@ export function ChordWithTooltip({
                     />
 
                     <div className="flex flex-col items-center">
-                      <ChordDiagram
-                        name={chord}
-                        dark={false}
-                        variationIndex={
-                          isExpanded ? tempVariation : variationIndex
-                        }
-                        className="shadow-none border-none bg-transparent pt-3 pb-2 min-w-[120px] md:min-w-[140px]"
-                      />
+                      {instrument === "keyboard" ? (
+                        <KeyboardDiagram
+                          name={chord}
+                          dark={false}
+                          className="shadow-none border-none bg-transparent pt-3 pb-2 min-w-[120px] md:min-w-[150px]"
+                        />
+                      ) : (
+                        <ChordDiagram
+                          name={chord}
+                          dark={false}
+                          variationIndex={
+                            isExpanded ? tempVariation : variationIndex
+                          }
+                          className="shadow-none border-none bg-transparent pt-3 pb-2 min-w-[120px] md:min-w-[140px]"
+                        />
+                      )}
 
-                      {!isExpanded && shapes.length > 1 && (
+                      {instrument !== "keyboard" && !isExpanded && shapes.length > 1 && (
                         <button
                           onClick={(e) => {
                             e.preventDefault();

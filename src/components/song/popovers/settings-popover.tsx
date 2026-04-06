@@ -2,14 +2,15 @@
 
 import { cn } from "@/lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
-import { Type, Palette } from "lucide-react";
+import { Type, Palette, Guitar, LayoutPanelLeft } from "lucide-react";
 import { RefObject } from "react";
 
 interface SettingsPopoverProps {
   isOpen: boolean;
   localFontSize: string;
   localChordColor: string;
-  onUpdate: (updates: { font_size?: string; chord_color?: string }) => void;
+  localInstrument?: string; // "guitar" | "keyboard"
+  onUpdate: (updates: { font_size?: string; chord_color?: string; instrument?: string }) => void;
   popoverRef: RefObject<HTMLDivElement | null>;
 }
 
@@ -17,6 +18,7 @@ export function SettingsPopover({
   isOpen,
   localFontSize,
   localChordColor,
+  localInstrument = "guitar",
   onUpdate,
   popoverRef,
 }: SettingsPopoverProps) {
@@ -81,6 +83,34 @@ export function SettingsPopover({
                     <div className={cn("w-full h-full rounded-full", c.color)} />
                   </button>
                 ))}
+              </div>
+            </div>
+
+            <div className="space-y-3 pb-2 pt-2 border-t border-zinc-100">
+              <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-zinc-400">
+                <Guitar className="w-3 h-3" /> Instrumento
+              </div>
+              <div className="flex bg-zinc-100 p-1 rounded-xl">
+                 <button 
+                   onClick={() => onUpdate({ instrument: "guitar" })} 
+                   className={cn(
+                     "flex-1 py-3 px-2 flex flex-col items-center gap-1.5 rounded-lg transition-all", 
+                     localInstrument === "guitar" ? "bg-white text-zinc-900 shadow-sm" : "text-zinc-500 hover:text-zinc-700"
+                   )}
+                 >
+                   <Guitar className={cn("w-4 h-4", localInstrument === "guitar" ? "text-yellow-600" : "text-zinc-400")} />
+                   <span className="text-[10px] font-bold">Violão/Guitarra</span>
+                 </button>
+                 <button 
+                   onClick={() => onUpdate({ instrument: "keyboard" })} 
+                   className={cn(
+                     "flex-1 py-3 px-2 flex flex-col items-center gap-1.5 rounded-lg transition-all", 
+                     localInstrument === "keyboard" ? "bg-white text-zinc-900 shadow-sm" : "text-zinc-500 hover:text-zinc-700"
+                   )}
+                 >
+                   <LayoutPanelLeft className={cn("w-4 h-4", localInstrument === "keyboard" ? "text-yellow-600" : "text-zinc-400")} />
+                   <span className="text-[10px] font-bold">Teclado/Piano</span>
+                 </button>
               </div>
             </div>
           </div>
