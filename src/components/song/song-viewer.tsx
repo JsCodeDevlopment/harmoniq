@@ -15,13 +15,13 @@ import {
   ArrowRight,
   Check,
   ChevronLeft,
+  Home,
   LayoutGrid,
   ListMusic,
   Loader2,
   Maximize2,
   Minus,
   Music,
-  Pause,
   Palette,
   Play,
   Plus,
@@ -55,7 +55,7 @@ export function SongViewer() {
     if (encodedId) {
       try {
         return decodeURIComponent(atob(encodedId));
-      } catch (e) {
+      } catch {
         return "";
       }
     }
@@ -310,13 +310,22 @@ export function SongViewer() {
           </h2>
           <p className="text-zinc-500 text-sm max-w-xs">{error}</p>
         </div>
-        <Button
-          variant="outline"
-          onClick={() => router.back()}
-          className="rounded-lg border-zinc-200 text-zinc-600"
-        >
-          Voltar para a busca
-        </Button>
+        <div className="flex gap-3">
+          <Button
+            variant="outline"
+            onClick={() => router.back()}
+            className="rounded-lg border-zinc-200 text-zinc-600"
+          >
+            Voltar
+          </Button>
+          <Button
+            variant="yellow"
+            onClick={() => router.push("/")}
+            className="rounded-lg font-bold"
+          >
+            Ir para o Início
+          </Button>
+        </div>
       </div>
     );
   }
@@ -333,12 +342,22 @@ export function SongViewer() {
       {!performanceMode && (
         <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-zinc-200 transition-all duration-300">
           <div className="max-w-4xl mx-auto px-4 md:px-6 py-3 md:py-4 flex items-center justify-between">
-            <button
-              onClick={() => router.back()}
-              className="p-2 hover:bg-zinc-100 rounded-lg transition-all text-zinc-400 hover:text-zinc-900"
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </button>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => router.back()}
+                className="p-2 hover:bg-zinc-100 rounded-lg transition-all text-zinc-400 hover:text-zinc-900"
+                title="Voltar"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+              <button
+                onClick={() => router.push("/")}
+                className="p-2 hover:bg-zinc-100 rounded-lg transition-all text-zinc-400 hover:text-zinc-900"
+                title="Ir para o Início"
+              >
+                <Home className="w-5 h-5" />
+              </button>
+            </div>
             <div className="text-center flex-1 px-2 md:px-4 overflow-hidden">
               <div className="flex items-center justify-center gap-2">
                 <h1 className="font-semibold text-base md:text-xl text-zinc-950 truncate tracking-tight">
@@ -521,12 +540,20 @@ export function SongViewer() {
       >
         {performanceMode && (
           <div className="fixed top-0 left-0 right-0 z-50 p-4 md:p-6 flex items-center justify-between bg-black/80 backdrop-blur-xl border-b border-white/5 opacity-0 hover:opacity-100 transition-opacity duration-300">
-            <button
-              onClick={() => setPerformanceMode(false)}
-              className="text-zinc-500 hover:text-white flex items-center gap-2 font-semibold text-[10px] md:text-xs uppercase tracking-wider transition-colors"
-            >
-              <ChevronLeft className="w-4 h-4" /> Sair
-            </button>
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => setPerformanceMode(false)}
+                className="text-zinc-500 hover:text-white flex items-center gap-2 font-semibold text-[10px] md:text-xs uppercase tracking-wider transition-colors"
+              >
+                <ChevronLeft className="w-4 h-4" /> Sair
+              </button>
+              <button
+                onClick={() => router.push("/")}
+                className="text-zinc-500 hover:text-white flex items-center gap-2 font-semibold text-[10px] md:text-xs uppercase tracking-wider transition-colors"
+              >
+                <Home className="w-4 h-4" /> Início
+              </button>
+            </div>
             <div className="flex items-center gap-4 md:gap-8">
               <button
                 onClick={() => setShowDiagrams(!showDiagrams)}

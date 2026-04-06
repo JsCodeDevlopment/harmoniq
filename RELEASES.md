@@ -4,6 +4,22 @@ Acompanhe as últimas melhorias, correções e novas funcionalidades da platafor
 
 ---
 
+## 📅 [1.1.1] - 2026-04-05 - "Navegação de Elite"
+
+Esta atualização atende ao feedback dos usuários que buscavam mais agilidade para alternar entre músicas e iniciar novas buscas.
+
+### 🚀 Novas Funcionalidades
+- **Botão de Início Global**: Adicionado ícone de "Home" fixo no cabeçalho das cifras para retorno instantâneo à tela de busca.
+- **Navegação em Performance**: O Modo Live agora conta com atalho direto para o início, permitindo trocas rápidas de repertório sem sair da interface otimizada.
+- **Recuperação de Erros**: Adicionado botão "Ir para o Início" na tela de falha de carregamento, evitando que o usuário fique "preso" em uma página de erro.
+
+### 🛠️ Melhorias
+- **UX Refinada**: Melhor organização dos botões de navegação no cabeçalho para evitar cliques acidentais em dispositivos móveis.
+- **Limpeza de Código**: Removidos imports de ícones não utilizados (`Search`, `Pause`) e correção de variáveis órfãs.
+
+---
+
+
 ## 📅 [1.1.0] - 2026-04-01 - "Mobile Mastery & Personalização Total"
 
 Esta atualização foca em transformar a experiência de leitura em dispositivos móveis e dar controle total ao músico sobre como ele visualiza suas cifras.
