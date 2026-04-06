@@ -1,35 +1,10 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
-import {
-  ArrowLeft,
-  ArrowRight,
-  Check,
-  ChevronLeft,
-  Home,
-  LayoutGrid,
-  ListMusic,
-  Loader2,
-  Maximize2,
-  Minus,
-  Music,
-  Palette,
-  Play,
-  Plus,
-  Settings,
-  Type,
-} from "lucide-react";
+import { Loader2, Music } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
   useSetlist,
@@ -41,7 +16,13 @@ import { useAuth } from "@/hooks/use-auth.hook";
 import { NOTES, transposeChord } from "@/lib/chords";
 import { ChordDiagram } from "@/components/chord-diagram";
 import { CifraRenderer } from "./cifra-renderer";
+import { Button } from "@/components/ui/button";
+import { Setlist } from "./types";
 
+// Sub-components
+import { SongHeader } from "./song-header";
+import { SongUtilityBar } from "./song-utility-bar";
+import { PerformanceHeader } from "./performance-header";
 
 export function SongViewer() {
   const { user, updateProfile } = useAuth();
@@ -70,7 +51,7 @@ export function SongViewer() {
     !sharedId && setlistId ? setlistId : "",
   );
   const { data: sharedSetlist } = useSharedSetlist(sharedId || "");
-  const setlist = sharedId ? sharedSetlist : privateSetlist;
+  const setlist = (sharedId ? sharedSetlist : privateSetlist) as Setlist | null;
 
   const { setlists = [], addSongToSetlist } = useSetlists();
   const { data: song, isLoading: loading, isError } = useGetSong(url);
@@ -111,6 +92,28 @@ export function SongViewer() {
   const [showSetlistSelector, setShowSetlistSelector] = useState(false);
   const [variationsMap, setVariationsMap] = useState<Record<string, number>>({});
   const [showSettings, setShowSettings] = useState(false);
+
+  // Refs for click outside
+  const settingsRef = useRef<HTMLDivElement>(null);
+  const selectorRef = useRef<HTMLDivElement>(null);
+  const settingsBtnRef = useRef<HTMLButtonElement>(null);
+  const selectorBtnRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Node;
+      if (showSettings && settingsRef.current && !settingsRef.current.contains(target) && 
+          settingsBtnRef.current && !settingsBtnRef.current.contains(target)) {
+        setShowSettings(false);
+      }
+      if (showSetlistSelector && selectorRef.current && !selectorRef.current.contains(target) && 
+          selectorBtnRef.current && !selectorBtnRef.current.contains(target)) {
+        setShowSetlistSelector(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showSettings, showSetlistSelector]);
 
   const [localFontSize, setLocalFontSize] = useState<string>("medium");
   const [localChordColor, setLocalChordColor] = useState<string>("yellow");
@@ -190,8 +193,8 @@ export function SongViewer() {
           description: `"${song.title}" foi salva no seu repertório.`,
         });
         setShowSetlistSelector(false);
-      } catch (err: any) {
-        const msg = err.response?.data?.message || "Não foi possível adicionar a música";
+      } catch (err: unknown) {
+        const msg = (err as any).response?.data?.message || "Não foi possível adicionar a música";
         toast.error("Erro ao adicionar", { description: msg });
       }
     },
@@ -294,185 +297,61 @@ export function SongViewer() {
   return (
     <div className={cn("min-h-screen transition-colors duration-500 selection:bg-yellow-500/30", performanceMode ? "bg-black text-white" : "bg-zinc-50 text-zinc-900")}>
       {!performanceMode && (
-        <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-zinc-200 transition-all duration-300">
-          <div className="max-w-4xl mx-auto px-4 md:px-6 py-3 md:py-4 flex items-center justify-between">
-            <div className="flex items-center gap-1">
-              <button onClick={() => router.back()} className="p-2 hover:bg-zinc-100 rounded-lg transition-all text-zinc-400 hover:text-zinc-900" title="Voltar"><ChevronLeft className="w-5 h-5" /></button>
-              <button onClick={() => router.push("/")} className="p-2 hover:bg-zinc-100 rounded-lg transition-all text-zinc-400 hover:text-zinc-900" title="Ir para o Início"><Home className="w-5 h-5" /></button>
-            </div>
-            <div className="text-center flex-1 px-2 md:px-4 overflow-hidden">
-              <div className="flex items-center justify-center gap-2">
-                <h1 className="font-semibold text-base md:text-xl text-zinc-950 truncate tracking-tight">{song?.title}</h1>
-                {localStorage.getItem(`song:${url}`) && <Check className="w-3.5 h-3.5 text-green-500" strokeWidth={3} />}
-              </div>
-              <p className="text-[9px] md:text-[11px] text-zinc-500 uppercase tracking-widest font-semibold mt-0.5 truncate">{song?.artist}</p>
-            </div>
-            <div className="flex items-center gap-2 px-1">
-              <button onClick={() => setShowSettings(!showSettings)} className={cn("p-2 rounded-lg transition-all", showSettings ? "bg-zinc-900 text-white" : "hover:bg-zinc-100 text-zinc-400 hover:text-zinc-900")} title="Configurações de Exibição">
-                <div className="relative">
-                  <Type className="w-5 h-5" />
-                  <Settings className="w-2.5 h-2.5 absolute -right-0.5 -bottom-0.5 bg-white rounded-full p-0.5 text-zinc-900" strokeWidth={3} />
-                </div>
-              </button>
-              {!setlistId && (
-                <button onClick={() => setShowSetlistSelector(!showSetlistSelector)} className={cn("p-2 rounded-lg transition-all", showSetlistSelector ? "bg-yellow-100 text-yellow-600" : "hover:bg-zinc-100 text-zinc-400 hover:text-zinc-900")} title="Adicionar ao Repertório"><ListMusic className="w-5 h-5" /></button>
-              )}
-              <button onClick={() => setPerformanceMode(true)} className="p-2 bg-zinc-100 hover:bg-zinc-200 rounded-lg transition-all text-zinc-600"><Maximize2 className="w-5 h-5" /></button>
-            </div>
-          </div>
-          <AnimatePresence>
-            {showSettings && (
-              <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="absolute right-4 md:right-6 top-16 w-72 bg-white border border-zinc-200 shadow-2xl rounded-3xl p-5 z-50">
-                <div className="space-y-6">
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-zinc-400"><Type className="w-3 h-3" /> Tamanho da Letra</div>
-                    <div className="flex bg-zinc-100 p-1 rounded-xl">
-                      {[
-                        { id: "xxsmall", label: "PPP" },
-                        { id: "xsmall", label: "PP" },
-                        { id: "small", label: "P" },
-                        { id: "medium", label: "M" },
-                        { id: "large", label: "G" },
-                        { id: "xlarge", label: "XG" },
-                      ].map((s) => (
-                        <button key={s.id} onClick={() => handleUpdateSettings({ font_size: s.id })} className={cn("flex-1 py-2 text-[10px] font-bold rounded-lg transition-all", localFontSize === s.id ? "bg-white text-zinc-900 shadow-sm" : "text-zinc-400 hover:text-zinc-600")}>{s.label}</button>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-zinc-400"><Palette className="w-3 h-3" /> Cor dos Acordes</div>
-                    <div className="flex flex-wrap gap-2 justify-between">
-                      {[{ id: "yellow", color: "bg-yellow-500" }, { id: "blue", color: "bg-blue-500" }, { id: "green", color: "bg-green-500" }, { id: "white", color: "bg-zinc-200" }, { id: "orange", color: "bg-orange-500" }].map((c) => (
-                        <button key={c.id} onClick={() => handleUpdateSettings({ chord_color: c.id })} className={cn("w-8 h-8 rounded-full border-2 transition-all p-0.5", localChordColor === c.id ? "border-zinc-900 scale-110" : "border-transparent")}><div className={cn("w-full h-full rounded-full", c.color)} /></button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-          <AnimatePresence>
-            {showSetlistSelector && (
-              <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="absolute right-6 top-16 w-64 bg-white border border-zinc-200 shadow-2xl rounded-2xl p-4 z-50">
-                <h4 className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-3 px-1">Escolha um repertório</h4>
-                <div className="flex flex-col gap-1 max-h-60 overflow-y-auto pr-1">
-                  {setlists.map((list) => (
-                    <button key={list.id} onClick={() => handleAddToSetlist(list.id)} className="flex flex-col text-left p-2.5 hover:bg-zinc-50 rounded-xl transition-colors group">
-                      <span className="font-bold text-sm text-zinc-900 group-hover:text-yellow-600 transition-colors">{list.title}</span>
-                      <span className="text-[10px] text-zinc-500 font-medium">{list.songs?.length} músicas</span>
-                    </button>
-                  ))}
-                  {setlists.length === 0 && (
-                    <div className="py-6 text-center">
-                      <p className="text-xs text-zinc-400 mb-3">Nenhum repertório criado</p>
-                      <Button size="sm" variant="outline" className="h-7 text-[10px]" onClick={() => router.push("/setlists")}>Criar Novo</Button>
-                    </div>
-                  )}
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </header>
+        <SongHeader 
+          title={song?.title}
+          artist={song?.artist}
+          url={url}
+          setlistId={setlistId}
+          showSettings={showSettings}
+          setShowSettings={setShowSettings}
+          showSetlistSelector={showSetlistSelector}
+          setShowSetlistSelector={setShowSetlistSelector}
+          setPerformanceMode={setPerformanceMode}
+          localFontSize={localFontSize}
+          localChordColor={localChordColor}
+          handleUpdateSettings={handleUpdateSettings}
+          setlists={setlists}
+          handleAddToSetlist={handleAddToSetlist}
+          settingsRef={settingsRef}
+          selectorRef={selectorRef}
+          settingsBtnRef={settingsBtnRef}
+          selectorBtnRef={selectorBtnRef}
+        />
       )}
 
       <main className={cn("max-w-4xl mx-auto transition-all duration-500", performanceMode ? "mt-0 px-4 md:px-8" : "mt-6 md:mt-12 px-4 md:px-6")}>
         {performanceMode && (
-          <div className="fixed top-0 left-0 right-0 z-50 p-4 md:p-6 flex items-center justify-between bg-black/80 backdrop-blur-xl border-b border-white/5 opacity-0 hover:opacity-100 transition-opacity duration-300">
-            <div className="flex items-center gap-4">
-              <button onClick={() => setPerformanceMode(false)} className="text-zinc-500 hover:text-white flex items-center gap-2 font-semibold text-[10px] md:text-xs uppercase tracking-wider transition-colors"><ChevronLeft className="w-4 h-4" /> Sair</button>
-              <button onClick={() => router.push("/")} className="text-zinc-500 hover:text-white flex items-center gap-2 font-semibold text-[10px] md:text-xs uppercase tracking-wider transition-colors"><Home className="w-4 h-4" /> Início</button>
-            </div>
-            <div className="flex items-center gap-4 md:gap-8">
-              <button onClick={() => setShowDiagrams(!showDiagrams)} className={cn("p-2 rounded-lg transition-all", showDiagrams ? "text-yellow-500 bg-white/5" : "text-zinc-500 hover:text-white")} title={showDiagrams ? "Esconder Diagramas" : "Mostrar Diagramas"}><LayoutGrid className="w-5 h-5" /></button>
-              <div className="flex items-center bg-white/5 border border-white/10 rounded-xl p-1 shadow-2xl backdrop-blur-md">
-                <Button variant="yellow" size="icon-xs" onClick={() => setTranspose((t) => t - 1)} className="rounded-lg size-8 md:size-9 shadow-lg shadow-yellow-500/20 active:scale-90 transition-transform"><Minus className="w-4 h-4" /></Button>
-                <div className="flex flex-col items-center px-4 md:px-6 min-w-[60px] md:min-w-[80px]">
-                  <span className="text-[8px] md:text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-0.5 opacity-60">Tom</span>
-                  <Select value={currentKey} onValueChange={handleKeyChange}>
-                    <SelectTrigger className="h-6 md:h-7 border-none bg-transparent hover:bg-white/5 font-bold text-yellow-500 text-lg md:text-xl p-0 pr-4 shadow-none focus:ring-0"><SelectValue>{currentKey}</SelectValue></SelectTrigger>
-                    <SelectContent className="bg-zinc-900 border-white/10 text-white">{NOTES.map((note) => (<SelectItem key={note} value={note} className="focus:bg-yellow-500/10 focus:text-yellow-500 cursor-pointer">{note}</SelectItem>))}</SelectContent>
-                  </Select>
-                </div>
-                <Button variant="yellow" size="icon-xs" onClick={() => setTranspose((t) => t + 1)} className="rounded-lg size-8 md:size-9 shadow-lg shadow-yellow-500/20 active:scale-90 transition-transform"><Plus className="w-4 h-4" /></Button>
-              </div>
-              {setlist && (
-                <div className="flex items-center gap-2 border-l border-white/10 pl-4 ml-2">
-                  <Button variant="ghost" size="icon-sm" onClick={goToPrev} disabled={songIndex <= 0} className="text-zinc-500 hover:text-white"><ArrowLeft className="w-5 h-5" /></Button>
-                  <div className="flex flex-col items-center justify-center min-w-[32px]">
-                    <span className="text-[10px] font-bold text-yellow-500 tabular-nums leading-none">{songIndex + 1}</span>
-                    <span className="text-[7px] font-bold text-zinc-600 uppercase tracking-tighter leading-none mt-0.5">de {setlist.songs.length}</span>
-                  </div>
-                  <Button variant="ghost" size="icon-sm" onClick={goToNext} disabled={songIndex >= setlist.songs.length - 1} className="text-zinc-500 hover:text-white"><ArrowRight className="w-5 h-5" /></Button>
-                </div>
-              )}
-            </div>
-          </div>
+          <PerformanceHeader 
+            onExit={() => setPerformanceMode(false)}
+            showDiagrams={showDiagrams}
+            setShowDiagrams={setShowDiagrams}
+            currentKey={currentKey}
+            setTranspose={setTranspose}
+            handleKeyChange={handleKeyChange}
+            setlist={setlist}
+            songIndex={songIndex}
+            goToPrev={goToPrev}
+            goToNext={goToNext}
+          />
         )}
 
         {!performanceMode && (
-          <div className="sticky top-[64px] md:top-[86px] z-40 mb-8 transform-gpu px-2 md:px-0">
-            <div className="bg-white/95 backdrop-blur-2xl border border-zinc-200 rounded-2xl md:rounded-[2.5rem] shadow-[0_15px_40px_rgba(0,0,0,0.12)] overflow-hidden flex flex-row flex-wrap lg:flex-nowrap items-stretch divide-zinc-100 transition-all duration-300">
-              {/* Module: Tonalidade */}
-              <div className="w-1/2 lg:w-auto lg:flex-[1.2] flex items-center gap-3 md:gap-4 px-3 py-1.5 md:px-6 md:py-5 border-r border-b lg:border-b-0 border-zinc-100">
-                <div className="flex flex-col w-full">
-                  <span className="text-[9px] md:text-[10px] font-bold text-zinc-400 uppercase tracking-[0.15em] md:tracking-[0.2em] mb-1 md:mb-2.5 opacity-60">Tonalidade</span>
-                  <div className="flex items-center gap-3">
-                    <div className="flex items-center bg-zinc-50 border border-zinc-100 rounded-2xl p-1 shadow-inner">
-                      <Button variant="yellow" size="icon-xs" onClick={() => setTranspose((t) => t - 1)} className="rounded-xl size-8 md:size-9 hover:scale-105 active:scale-95 transition-all shadow-md"><Minus className="size-3.5 md:size-4" /></Button>
-                      <div className="min-w-[48px] md:min-w-[56px] text-center font-black text-lg md:text-xl text-zinc-900 tabular-nums tracking-tighter">{currentKey}</div>
-                      <Button variant="yellow" size="icon-xs" onClick={() => setTranspose((t) => t + 1)} className="rounded-xl size-8 md:size-9 hover:scale-105 active:scale-95 transition-all shadow-md"><Plus className="size-3.5 md:size-4" /></Button>
-                    </div>
-                    <div className="px-2 md:px-3 py-1.5 md:py-2 rounded-lg md:rounded-xl bg-zinc-100/50 text-[9px] md:text-[10px] font-bold text-zinc-500 border border-zinc-100/30">TOM: <span className="text-zinc-900 ml-1">{song?.key}</span></div>
-                  </div>
-                </div>
-              </div>
-              {/* Module: Visual */}
-              <div className="w-1/2 lg:w-auto flex items-center gap-3 md:gap-4 px-3 py-1.5 md:px-6 md:py-5 border-b lg:border-b-0 lg:border-r border-zinc-100 bg-zinc-50/20 lg:bg-transparent">
-                <div className="flex flex-col">
-                  <span className="text-[9px] md:text-[10px] font-bold text-zinc-400 uppercase tracking-[0.15em] md:tracking-[0.2em] mb-1 md:mb-2.5 opacity-60">
-                    Visual
-                  </span>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => setShowDiagrams(!showDiagrams)}
-                      className={cn(
-                        "h-9 md:h-11 px-3 md:px-4 rounded-xl md:rounded-2xl transition-all flex items-center gap-2 font-bold text-[10px] md:text-[11px] uppercase tracking-wider border whitespace-nowrap",
-                        showDiagrams
-                          ? "bg-yellow-500 text-black border-yellow-600 shadow-lg shadow-yellow-500/20"
-                          : "bg-white text-zinc-500 border-zinc-200 hover:bg-zinc-50 hover:text-zinc-900",
-                      )}
-                    >
-                      <LayoutGrid className="size-4" />
-                      Shapes
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Module: Execução (Fluxo) */}
-              <div className="w-full lg:w-auto lg:flex-1 flex items-center gap-3 md:gap-4 px-3 py-1.5 md:px-6 md:py-5 border-b lg:border-b-0 lg:border-r border-zinc-100">
-                <div className="flex flex-col w-full">
-                  <span className="text-[9px] md:text-[10px] font-bold text-zinc-400 uppercase tracking-[0.15em] md:tracking-[0.2em] mb-1 md:mb-2.5 opacity-60">Fluxo</span>
-                  <div className="flex items-center gap-2">
-                    <button onClick={() => setAutoScroll(!autoScroll)} className={cn("flex-1 h-9 md:h-11 px-4 md:px-6 rounded-xl md:rounded-2xl transition-all duration-300 font-bold uppercase tracking-widest text-[10px] md:text-[11px] flex items-center justify-center gap-2 md:gap-3 border shadow-sm", autoScroll ? "bg-red-500 text-white border-red-600 shadow-red-500/20" : "bg-white text-zinc-900 border-zinc-200 hover:bg-zinc-50 hover:border-zinc-300")}>
-                      {autoScroll ? (<><div className="size-2 rounded-full bg-white animate-pulse" />Pausar Rolagem</>) : (<><Play className="size-4 fill-current text-zinc-400" />Auto Scroll</>)}
-                    </button>
-                    <button onClick={() => setPerformanceMode(true)} className="h-9 md:h-11 px-4 md:px-5 rounded-xl md:rounded-2xl bg-zinc-900 text-white hover:bg-black transition-all flex items-center gap-2 font-bold text-[10px] md:text-[11px] uppercase tracking-wider shadow-xl shadow-black/10 group"><div className="size-2 rounded-full bg-green-500 group-hover:scale-125 transition-transform" />Live</button>
-                  </div>
-                </div>
-              </div>
-              {/* Module: Navegação */}
-              {setlist && (
-                <div className="w-full lg:w-auto flex items-center justify-center px-4 md:px-8 py-1.5 md:py-5 bg-zinc-50/60 lg:bg-zinc-50/80">
-                  <div className="flex items-center gap-4 md:gap-5">
-                    <Button variant="outline" size="icon" onClick={goToPrev} disabled={songIndex <= 0} className="size-9 md:size-11 rounded-xl md:rounded-2xl border-zinc-200 bg-white hover:bg-zinc-50 transition-all active:scale-90"><ArrowLeft className="size-4 md:size-5" /></Button>
-                    <div className="flex flex-col items-center min-w-[36px] md:min-w-[40px]"><span className="text-base md:text-lg font-black text-zinc-900 tabular-nums leading-none">{songIndex + 1}</span><span className="text-[8px] md:text-[9px] font-bold text-zinc-400 tabular-nums mt-1 uppercase tracking-tighter">de {setlist.songs.length}</span></div>
-                    <Button variant="outline" size="icon" onClick={goToNext} disabled={songIndex >= setlist.songs.length - 1} className="size-9 md:size-11 rounded-xl md:rounded-2xl border-zinc-200 bg-white hover:bg-zinc-50 transition-all active:scale-90"><ArrowRight className="size-4 md:size-5" /></Button>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
+          <SongUtilityBar 
+            currentKey={currentKey}
+            originalKey={song?.key}
+            transpose={transpose}
+            setTranspose={setTranspose}
+            autoScroll={autoScroll}
+            setAutoScroll={setAutoScroll}
+            performanceMode={performanceMode}
+            setPerformanceMode={setPerformanceMode}
+            showDiagrams={showDiagrams}
+            setShowDiagrams={setShowDiagrams}
+            setlist={setlist}
+            songIndex={songIndex}
+            goToPrev={goToPrev}
+            goToNext={goToNext}
+          />
         )}
 
         <div className={cn("transition-all duration-700", performanceMode ? "pt-24" : "mt-0")}>

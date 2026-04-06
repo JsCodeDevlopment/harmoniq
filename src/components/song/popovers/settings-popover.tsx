@@ -1,0 +1,91 @@
+"use client";
+
+import { cn } from "@/lib/utils";
+import { AnimatePresence, motion } from "framer-motion";
+import { Type, Palette } from "lucide-react";
+import { RefObject } from "react";
+
+interface SettingsPopoverProps {
+  isOpen: boolean;
+  localFontSize: string;
+  localChordColor: string;
+  onUpdate: (updates: { font_size?: string; chord_color?: string }) => void;
+  popoverRef: RefObject<HTMLDivElement | null>;
+}
+
+export function SettingsPopover({
+  isOpen,
+  localFontSize,
+  localChordColor,
+  onUpdate,
+  popoverRef,
+}: SettingsPopoverProps) {
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div 
+          ref={popoverRef}
+          initial={{ opacity: 0, y: -10 }} 
+          animate={{ opacity: 1, y: 0 }} 
+          exit={{ opacity: 0, y: -10 }} 
+          className="absolute right-4 md:right-6 top-16 w-72 bg-white border border-zinc-200 shadow-2xl rounded-3xl p-5 z-50"
+        >
+          <div className="space-y-6">
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-zinc-400">
+                <Type className="w-3 h-3" /> Tamanho da Letra
+              </div>
+              <div className="flex bg-zinc-100 p-1 rounded-xl">
+                {[
+                  { id: "xxsmall", label: "PPP" },
+                  { id: "xsmall", label: "PP" },
+                  { id: "small", label: "P" },
+                  { id: "medium", label: "M" },
+                  { id: "large", label: "G" },
+                  { id: "xlarge", label: "XG" },
+                ].map((s) => (
+                  <button 
+                    key={s.id} 
+                    onClick={() => onUpdate({ font_size: s.id })} 
+                    className={cn(
+                      "flex-1 py-2 text-[10px] font-bold rounded-lg transition-all", 
+                      localFontSize === s.id ? "bg-white text-zinc-900 shadow-sm" : "text-zinc-400 hover:text-zinc-600"
+                    )}
+                  >
+                    {s.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-zinc-400">
+                <Palette className="w-3 h-3" /> Cor dos Acordes
+              </div>
+              <div className="flex flex-wrap gap-2 justify-between">
+                {[
+                  { id: "yellow", color: "bg-yellow-500" }, 
+                  { id: "blue", color: "bg-blue-500" }, 
+                  { id: "green", color: "bg-green-500" }, 
+                  { id: "white", color: "bg-zinc-200" }, 
+                  { id: "orange", color: "bg-orange-500" }
+                ].map((c) => (
+                  <button 
+                    key={c.id} 
+                    onClick={() => onUpdate({ chord_color: c.id })} 
+                    className={cn(
+                      "w-8 h-8 rounded-full border-2 transition-all p-0.5", 
+                      localChordColor === c.id ? "border-zinc-900 scale-110" : "border-transparent"
+                    )}
+                  >
+                    <div className={cn("w-full h-full rounded-full", c.color)} />
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
