@@ -1,6 +1,6 @@
 # Harmoniq - Digital Songbook & Chord Library
 
-![](https://img.shields.io/badge/Versão-1.2.0-black?style=for-the-badge)
+![](https://img.shields.io/badge/Versão-1.3.0-black?style=for-the-badge)
 
 Plataforma moderna, intuitiva e responsiva desenvolvida para músicos que buscam profissionalismo e agilidade no gerenciamento de repertórios. O **Harmoniq** elimina a complexidade das cifras estáticas, oferecendo uma experiência dinâmica de transposição e visualização de acordes.
 
