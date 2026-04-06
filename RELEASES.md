@@ -2,6 +2,37 @@
 
 Acompanhe as últimas melhorias, correções e novas funcionalidades da plataforma Harmoniq.
 
+## 📅 [1.2.0] - 2026-04-05 - "Arquitetura Modular & Versões"
+
+Esta atualização representa um grande salto na organização do código e na flexibilidade para o músico, permitindo escolher entre diferentes arranjos da mesma canção.
+
+### 🚀 Novas Funcionalidades
+- **Versões de Cifra**: Adicionado suporte para alternar entre a versão **Principal** e **Simplificada** com um único clique. O sistema agora identifica automaticamente quando uma versão alternativa está disponível no Cifra Club.
+- **Persistência de Arranjo**: Escolhas de versão agora são salvas individualmente por música dentro dos seus repertórios. Se você prefere a versão simples de uma canção mas a principal de outra, o Harmoniq lembrará disso para você.
+- **Barra Utilitária Inteligente**: Refatorada para ser ultra-compacta no mobile (layout de 2 linhas), garantindo que todos os controles de tom, visual, versão e fluxo caibam perfeitamente na tela.
+
+### 🛠️ Melhorias Técnicas (Refatoração)
+- **Componentização Total**: O componente `SongViewer` foi dividido em módulos especializados (`SongHeader`, `SongUtilityBar`, `PerformanceHeader`, `Popovers`), tornando a plataforma mais rápida e fácil de evoluir.
+- **Navegação Sem Sobreposição**: Substituídos os overlays por um sistema de detecção de clique global inteligente. Menus de configurações e seleção de setlist agora fecham ao clicar em qualquer lugar da tela, garantindo um comportamento de "app nativo".
+- **Tipagem Estrita**: Implementação de interfaces centralizadas para músicas e repertórios, eliminando erros de dados e garantindo maior estabilidade no carregamento das cifras.
+
+### 📱 Ajustes Mobile (UX)
+- **Layout de Grade Atômico**: Otimização dos botões da barra flutuante com labels dinâmicos e truncamento inteligente para evitar cortes de interface em dispositivos mini.
+- **Ícones Dinâmicos**: Uso do ícone "Zap" para alternância rápida de versões e melhor feedback visual no estado ativo das ferramentas.
+
+---
+
+## 📅 [1.1.2] - 2026-04-05 - "Performance & Estabilidade"
+
+Esta atualização atende ao feedback dos usuários que notaram lentidão durante a rolagem automática e dificuldades de navegação durante o uso prolongado.
+
+### 🚀 Novas Funcionalidades
+- **Barra de Ferramentas Fixa**: A barra de controles (tom, auto-scroll e visual) agora permanece fixa no topo da tela enquanto você navega pelos detalhes da música. Isso garante que o botão de "Pausa" e as "Shapes" estejam sempre ao alcance de um clique.
+- **Scroll Inteligente**: Otimizado o motor de rolagem automática utilizando `requestAnimationFrame`. Isso elimina travamentos em navegadores de desktop, proporcionando uma rolagem fluida e leve.
+
+### 🛠️ Melhorias de UX
+- **Foco na Música**: Ao iniciar a rolagem, os controles permanecem visíveis sem sobrepor o conteúdo principal, garantindo uma experiência de leitura ininterrupta.
+
 ---
 
 ## 📅 [1.1.1] - 2026-04-05 - "Navegação de Elite"
@@ -18,8 +49,6 @@ Esta atualização atende ao feedback dos usuários que buscavam mais agilidade 
 - **Limpeza de Código**: Removidos imports de ícones não utilizados (`Search`, `Pause`) e correção de variáveis órfãs.
 
 ---
-
-
 ## 📅 [1.1.0] - 2026-04-01 - "Mobile Mastery & Personalização Total"
 
 Esta atualização foca em transformar a experiência de leitura em dispositivos móveis e dar controle total ao músico sobre como ele visualiza suas cifras.
