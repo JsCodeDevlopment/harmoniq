@@ -5,15 +5,13 @@ import { cn } from "@/lib/utils";
 import {
   ArrowLeft,
   ArrowRight,
-  LayoutGrid,
-  Minus,
-  Plus,
-  Zap,
-  Music,
   Guitar,
+  LayoutGrid,
   LayoutPanelLeft,
+  Minus,
+  Palette,
+  Plus,
   Type,
-  Palette
 } from "lucide-react";
 import { SongUtilityBarProps } from "./types";
 
@@ -47,24 +45,22 @@ export function SongUtilityBar({
     (!!keyboardUrl && !!principalUrl && keyboardUrl !== principalUrl);
 
   const fontSizes = [
-    { id: 'xxsmall', label: 'PPP' },
-    { id: 'xsmall', label: 'PP' },
-    { id: 'small', label: 'P' },
-    { id: 'medium', label: 'M' },
-    { id: 'large', label: 'G' },
-    { id: 'extra-large', label: 'XG' }
+    { id: "xxsmall", label: "PPP" },
+    { id: "xsmall", label: "PP" },
+    { id: "small", label: "P" },
+    { id: "medium", label: "M" },
+    { id: "large", label: "G" },
+    { id: "extra-large", label: "XG" },
   ];
 
   return (
     <div className="sticky top-[88px] md:top-[86px] z-40 mb-10 px-2 md:px-0">
       <div className="bg-white/90 backdrop-blur-2xl border border-zinc-200/60 rounded-3xl shadow-[0_30px_70px_rgba(0,0,0,0.1)] overflow-hidden flex flex-col transition-all duration-500">
-        
         {/* Row 1: Core Controls (Mobile High Density) */}
         <div className="flex flex-row md:flex-row items-center divide-x divide-zinc-100">
-          
           {/* Module: Tonalidade (Always Visible) */}
           <div className="flex-[1.2] md:flex-[0.8] flex items-center justify-center md:justify-start px-3 py-3 md:px-6 md:py-4 gap-2 md:gap-4">
-             <div className="flex flex-col md:w-auto">
+            <div className="flex flex-col md:w-auto">
               <span className="hidden md:block text-[9px] font-bold text-zinc-400 uppercase tracking-widest opacity-60">
                 Tonalidade
               </span>
@@ -92,8 +88,12 @@ export function SongUtilityBar({
                 </div>
                 {originalKey && (
                   <div className="flex flex-col items-center justify-center h-full px-1.5 py-1 rounded-lg bg-zinc-100/50 border border-zinc-200/30">
-                    <span className="text-[7px] font-bold text-zinc-400 uppercase leading-none mb-0.5 whitespace-nowrap">Original</span>
-                    <span className="text-[10px] md:text-xs font-black text-zinc-600 leading-none">{originalKey}</span>
+                    <span className="text-[7px] font-bold text-zinc-400 uppercase leading-none mb-0.5 whitespace-nowrap">
+                      Original
+                    </span>
+                    <span className="text-[10px] md:text-xs font-black text-zinc-600 leading-none">
+                      {originalKey}
+                    </span>
                   </div>
                 )}
               </div>
@@ -111,7 +111,9 @@ export function SongUtilityBar({
                   onClick={() => setShowDiagrams(!showDiagrams)}
                   className={cn(
                     "h-9 px-3.5 rounded-xl transition-all flex items-center gap-2 font-bold text-[10px] uppercase border",
-                    showDiagrams ? "bg-yellow-500 border-yellow-600 text-black shadow-md shadow-yellow-500/20" : "bg-white border-zinc-200 text-zinc-500 hover:bg-zinc-50"
+                    showDiagrams
+                      ? "bg-yellow-500 border-yellow-600 text-black shadow-md shadow-yellow-500/20"
+                      : "bg-white border-zinc-200 text-zinc-500 hover:bg-zinc-50",
                   )}
                 >
                   <LayoutGrid className="size-3.5" />
@@ -124,7 +126,9 @@ export function SongUtilityBar({
                       onClick={() => onVersionChange(principalUrl!)}
                       className={cn(
                         "h-7.5 px-3 rounded-lg text-[9px] font-bold uppercase transition-all",
-                        !isSimplified && !isKeyboardVersion ? "bg-zinc-900 text-white shadow-sm" : "text-zinc-400 hover:bg-zinc-50"
+                        !isSimplified && !isKeyboardVersion
+                          ? "bg-zinc-900 text-white shadow-sm"
+                          : "text-zinc-400 hover:bg-zinc-50",
                       )}
                     >
                       Principal
@@ -134,21 +138,12 @@ export function SongUtilityBar({
                         onClick={() => onVersionChange(simplifiedUrl)}
                         className={cn(
                           "h-7.5 px-3 rounded-lg text-[9px] font-bold uppercase transition-all",
-                          isSimplified ? "bg-yellow-500 text-black shadow-sm" : "text-zinc-400 hover:bg-zinc-50"
+                          isSimplified
+                            ? "bg-yellow-500 text-black shadow-sm"
+                            : "text-zinc-400 hover:bg-zinc-50",
                         )}
                       >
-                       Simples
-                      </button>
-                    )}
-                    {keyboardUrl && (
-                      <button
-                        onClick={() => onVersionChange(keyboardUrl)}
-                        className={cn(
-                          "h-7.5 px-3 rounded-lg text-[9px] font-bold uppercase transition-all",
-                          isKeyboardVersion ? "bg-blue-500 text-white shadow-sm" : "text-zinc-400 hover:bg-zinc-50"
-                        )}
-                      >
-                        Teclado
+                        Simples
                       </button>
                     )}
                   </div>
@@ -159,7 +154,7 @@ export function SongUtilityBar({
 
           {/* Module: Performance (Always Visible) */}
           <div className="flex-1 md:flex-[0.8] flex items-center px-3 py-3 md:px-6 md:py-4 bg-zinc-900 text-white border-l border-zinc-800 shadow-[-10px_0_30px_rgba(0,0,0,0.1)]">
-             <div className="flex flex-col w-full">
+            <div className="flex flex-col w-full">
               <span className="hidden md:block text-[9px] font-bold text-zinc-500 uppercase tracking-widest leading-none mb-2">
                 Performance
               </span>
@@ -168,7 +163,9 @@ export function SongUtilityBar({
                   onClick={() => setAutoScroll(!autoScroll)}
                   className={cn(
                     "flex-1 h-8 md:h-9 rounded-xl font-bold uppercase text-[9px] md:text-[10px] transition-all border",
-                    autoScroll ? "bg-red-500 border-red-400 text-white shadow-lg shadow-red-500/20" : "bg-zinc-800 border-zinc-700 text-zinc-400 hover:bg-zinc-700"
+                    autoScroll
+                      ? "bg-red-500 border-red-400 text-white shadow-lg shadow-red-500/20"
+                      : "bg-zinc-800 border-zinc-700 text-zinc-400 hover:bg-zinc-700",
                   )}
                 >
                   {autoScroll ? "Pausar" : "Auto Scroll"}
@@ -186,38 +183,47 @@ export function SongUtilityBar({
 
         {/* Row 2: Desktop Preferences (Mobile Hidden) */}
         <div className="hidden md:flex flex-row divide-x divide-zinc-100 border-t border-zinc-100 bg-white/50">
-          
           {/* Module: Instrumento */}
           <div className="flex-1 flex flex-col justify-center px-6 py-4">
             <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest opacity-60">
               Escolher Instrumento
             </span>
             <div className="flex bg-zinc-100/50 p-1 rounded-xl border border-zinc-200/50 mt-1.5 w-fit shadow-sm">
-              <button 
+              <button
                 onClick={() => {
                   handleUpdateSettings({ instrument: "guitar" });
-                  if (isKeyboardVersion && principalUrl) onVersionChange(principalUrl);
-                }} 
+                  if (isKeyboardVersion && principalUrl)
+                    onVersionChange(principalUrl);
+                }}
                 className={cn(
-                  "px-4 py-1.5 rounded-lg flex items-center gap-2 transition-all", 
-                  localInstrument === "guitar" ? "bg-white text-zinc-900 shadow-sm border border-zinc-200" : "text-zinc-400 hover:text-zinc-600"
+                  "px-4 py-1.5 rounded-lg flex items-center gap-2 transition-all",
+                  localInstrument === "guitar"
+                    ? "bg-white text-zinc-900 shadow-sm border border-zinc-200"
+                    : "text-zinc-400 hover:text-zinc-600",
                 )}
               >
                 <Guitar className="size-3.5" />
-                <span className="text-[10px] font-bold uppercase">Guitarra / Violão</span>
+                <span className="text-[10px] font-bold uppercase">
+                  Guitarra / Violão
+                </span>
               </button>
-              <button 
+              <button
                 onClick={() => {
                   handleUpdateSettings({ instrument: "keyboard" });
-                  if (keyboardUrl && currentUrl !== keyboardUrl) onVersionChange(keyboardUrl);
-                }} 
+                  if (keyboardUrl && currentUrl !== keyboardUrl)
+                    onVersionChange(keyboardUrl);
+                }}
                 className={cn(
-                  "px-4 py-1.5 rounded-lg flex items-center gap-2 transition-all", 
-                  localInstrument === "keyboard" ? "bg-white text-zinc-900 shadow-sm border border-zinc-200" : "text-zinc-400 hover:text-zinc-600"
+                  "px-4 py-1.5 rounded-lg flex items-center gap-2 transition-all",
+                  localInstrument === "keyboard"
+                    ? "bg-white text-zinc-900 shadow-sm border border-zinc-200"
+                    : "text-zinc-400 hover:text-zinc-600",
                 )}
               >
                 <LayoutPanelLeft className="size-3.5" />
-                <span className="text-[10px] font-bold uppercase">Teclado / Piano</span>
+                <span className="text-[10px] font-bold uppercase">
+                  Teclado / Piano
+                </span>
               </button>
             </div>
           </div>
@@ -229,31 +235,39 @@ export function SongUtilityBar({
             </span>
             <div className="flex items-center gap-6 mt-1.5">
               <div className="flex items-center gap-0.5 bg-zinc-100/50 p-1 rounded-xl border border-zinc-200/50 h-[38px] shadow-sm">
-                 <Type className="size-3 text-zinc-300 mx-1" />
-                 {fontSizes.map((s) => (
-                   <button 
+                <Type className="size-3 text-zinc-300 mx-1" />
+                {fontSizes.map((s) => (
+                  <button
                     key={s.id}
-                    onClick={() => handleUpdateSettings({ font_size: s.id })} 
+                    onClick={() => handleUpdateSettings({ font_size: s.id })}
                     className={cn(
-                      "min-w-6 h-7 px-1 flex items-center justify-center rounded-lg font-black text-[9px] uppercase transition-all", 
-                      localFontSize === s.id ? "bg-white text-zinc-900 shadow-sm border border-zinc-200" : "text-zinc-400 hover:text-zinc-500"
+                      "min-w-6 h-7 px-1 flex items-center justify-center rounded-lg font-black text-[9px] uppercase transition-all",
+                      localFontSize === s.id
+                        ? "bg-white text-zinc-900 shadow-sm border border-zinc-200"
+                        : "text-zinc-400 hover:text-zinc-500",
                     )}
                     title={s.id}
-                   >
-                     {s.label}
-                   </button>
-                 ))}
+                  >
+                    {s.label}
+                  </button>
+                ))}
               </div>
               <div className="flex items-center gap-3 bg-zinc-100/50 px-3 py-1.5 rounded-xl border border-zinc-200/50 h-[38px] shadow-sm">
                 <Palette className="size-3.5 text-zinc-300" />
                 {["yellow", "blue", "green"].map((c) => (
-                  <button 
+                  <button
                     key={c}
-                    onClick={() => handleUpdateSettings({ chord_color: c })} 
+                    onClick={() => handleUpdateSettings({ chord_color: c })}
                     className={cn(
-                      "size-4 rounded-full border-2 transition-all shadow-sm active:scale-90", 
-                      c === "yellow" ? "bg-yellow-400" : c === "blue" ? "bg-blue-400" : "bg-green-400",
-                      localChordColor === c ? "scale-125 border-white ring-1 ring-zinc-400" : "border-transparent opacity-30 hover:opacity-100"
+                      "size-4 rounded-full border-2 transition-all shadow-sm active:scale-90",
+                      c === "yellow"
+                        ? "bg-yellow-400"
+                        : c === "blue"
+                          ? "bg-blue-400"
+                          : "bg-green-400",
+                      localChordColor === c
+                        ? "scale-125 border-white ring-1 ring-zinc-400"
+                        : "border-transparent opacity-30 hover:opacity-100",
                     )}
                   />
                 ))}
