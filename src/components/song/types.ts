@@ -53,6 +53,10 @@ export interface SongUtilityBarProps {
   songIndex: number;
   goToPrev: () => void;
   goToNext: () => void;
+  simplifiedUrl?: string;
+  principalUrl?: string;
+  currentUrl: string;
+  onVersionChange: (url: string) => void;
 }
 
 export interface PerformanceHeaderProps {

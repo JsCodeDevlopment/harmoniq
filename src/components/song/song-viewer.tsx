@@ -17,12 +17,12 @@ import { NOTES, transposeChord } from "@/lib/chords";
 import { ChordDiagram } from "@/components/chord-diagram";
 import { CifraRenderer } from "./cifra-renderer";
 import { Button } from "@/components/ui/button";
-import { Setlist } from "./types";
 
 // Sub-components
 import { SongHeader } from "./song-header";
 import { SongUtilityBar } from "./song-utility-bar";
 import { PerformanceHeader } from "./performance-header";
+import { Setlist } from "./types";
 
 export function SongViewer() {
   const { user, updateProfile } = useAuth();
@@ -42,6 +42,7 @@ export function SongViewer() {
     }
     return "";
   }, [rawUrl, encodedId]);
+  
   const setlistId = searchParams.get("setlistId");
   const sharedId = searchParams.get("sharedId");
   const songIndexStr = searchParams.get("songIndex");
@@ -176,6 +177,34 @@ export function SongViewer() {
     [sharedId, setlistId, setlist, songIndex, currentKey, updateSong],
   );
 
+  const handleVersionChange = useCallback((newUrl: string) => {
+    if (!newUrl) return;
+    
+    // Encode the new URL to ID format if needed, or just update the raw URL
+    const encoded = typeof btoa !== "undefined" ? btoa(encodeURIComponent(newUrl)) : "";
+    
+    // Construct new search params while preserving setlist context
+    const params = new URLSearchParams(searchParams.toString());
+    
+    if (encodedId) {
+      params.set("id", encoded);
+    } else {
+      params.set("url", newUrl);
+    }
+    
+    // If it's in a setlist, update the setlist entry
+    if (!sharedId && setlistId && setlist?.songs[songIndex]) {
+      const targetSongId = setlist.songs[songIndex].id;
+      updateSong({
+        songId: targetSongId,
+        url: newUrl, // Saving the new version's URL
+      }).catch((err) => console.error("Could not update version in setlist", err));
+    }
+
+    router.replace(`/song?${params.toString()}`);
+    toast.success("Trocando versão...", { duration: 1000 });
+  }, [searchParams, encodedId, sharedId, setlistId, setlist, songIndex, updateSong, router]);
+
   const handleAddToSetlist = useCallback(
     async (targetSetlistId: number) => {
       if (!song) return;
@@ -185,7 +214,7 @@ export function SongViewer() {
           song: {
             title: song.title,
             artist: song.artist,
-            url: url,
+            url: url, // This will be the current version's URL (original or simplified)
             key: currentKey,
           },
         });
@@ -351,6 +380,10 @@ export function SongViewer() {
             songIndex={songIndex}
             goToPrev={goToPrev}
             goToNext={goToNext}
+            simplifiedUrl={song?.simplified_url}
+            principalUrl={song?.principal_url}
+            currentUrl={url}
+            onVersionChange={handleVersionChange}
           />
         )}
 

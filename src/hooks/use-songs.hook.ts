@@ -10,6 +10,8 @@ export interface Song {
   key: string;
   content: string;
   chords: string[];
+  simplified_url?: string;
+  principal_url?: string;
 }
 
 export function useSearchSongs(query: string) {
