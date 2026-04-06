@@ -135,8 +135,8 @@ export function useSetlist(id: string | number) {
   });
 
   const updateSongMutation = useMutation({
-    mutationFn: async ({ songId, key, chord_variations }: { songId: number, key: string, chord_variations: string }) => {
-      const response = await api.patch(`/setlists/${id}/songs/${songId}`, { key, chord_variations });
+    mutationFn: async ({ songId, key, url, chord_variations }: { songId: number, key?: string, url?: string, chord_variations?: string }) => {
+      const response = await api.patch(`/setlists/${id}/songs/${songId}`, { key, url, chord_variations });
       return response.data;
     },
     onSuccess: () => {
