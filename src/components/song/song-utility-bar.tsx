@@ -9,6 +9,7 @@ import {
   LayoutGrid,
   LayoutPanelLeft,
   Minus,
+  Music,
   Palette,
   Plus,
   Type,
@@ -37,6 +38,8 @@ export function SongUtilityBar({
   localChordColor,
   localInstrument,
   handleUpdateSettings,
+  showTabs,
+  setShowTabs,
 }: SongUtilityBarProps) {
   const isSimplified = currentUrl === simplifiedUrl;
   const isKeyboardVersion = currentUrl === keyboardUrl;
@@ -54,7 +57,7 @@ export function SongUtilityBar({
   ];
 
   return (
-    <div className="sticky top-[88px] md:top-[86px] z-40 mb-10 px-2 md:px-0">
+    <div className="sticky top-[95px] md:top-[86px] z-40 mb-10 px-2 md:px-0">
       <div className="bg-white/90 backdrop-blur-2xl border border-zinc-200/60 rounded-3xl shadow-[0_30px_70px_rgba(0,0,0,0.1)] overflow-hidden flex flex-col transition-all duration-500">
         {/* Row 1: Core Controls (Mobile High Density) */}
         <div className="flex flex-row md:flex-row items-center divide-x divide-zinc-100">
@@ -120,6 +123,19 @@ export function SongUtilityBar({
                   <span>Shapes</span>
                 </button>
 
+                <button
+                  onClick={() => setShowTabs(!showTabs)}
+                  className={cn(
+                    "h-9 px-3.5 rounded-xl transition-all flex items-center gap-2 font-bold text-[10px] uppercase border",
+                    showTabs
+                      ? "bg-yellow-500 border-yellow-600 text-black shadow-md shadow-yellow-500/20"
+                      : "bg-white border-zinc-200 text-zinc-500 hover:bg-zinc-50",
+                  )}
+                >
+                  <Music className="size-3.5" />
+                  <span>{showTabs ? "Ocultar Tabs" : "Exibir Tabs"}</span>
+                </button>
+
                 {hasAlternative && (
                   <div className="flex items-center bg-white p-0.5 rounded-xl border border-zinc-200/80 shadow-sm">
                     <button
@@ -170,12 +186,12 @@ export function SongUtilityBar({
                 >
                   {autoScroll ? "Pausar" : "Auto Scroll"}
                 </button>
-                <button
+                {/* <button
                   onClick={() => setPerformanceMode(true)}
                   className="h-8 md:h-9 px-3 md:px-4 rounded-xl bg-white text-zinc-900 font-bold uppercase text-[9px] md:text-[10px] whitespace-nowrap hover:bg-zinc-100 shadow-md transition-all active:scale-95"
                 >
                   Live
-                </button>
+                </button> */}
               </div>
             </div>
           </div>

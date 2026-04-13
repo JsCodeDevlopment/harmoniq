@@ -12,6 +12,7 @@ export function CifraRenderer({
   instrument = "guitar",
   variations = {},
   onVariationChange,
+  showTabs = true,
 }: {
   content: string;
   transpose: number;
@@ -20,6 +21,7 @@ export function CifraRenderer({
   instrument?: string;
   variations?: Record<string, number>;
   onVariationChange?: (chord: string, idx: number) => void;
+  showTabs?: boolean;
 }) {
   return useMemo(() => {
     if (!content) return null;
@@ -31,7 +33,16 @@ export function CifraRenderer({
     const convertToReact = (nodes: NodeList): React.ReactNode => {
       return Array.from(nodes).map((node, i) => {
         if (node.nodeType === Node.TEXT_NODE) {
-          return node.textContent;
+          const text = node.textContent || "";
+          
+          // If hiding tabs, we also want to hide text lines that look like tabs if they aren't in a span
+          // and also avoid extra empty lines created by hidden tabs
+          if (!showTabs) {
+             const isTabLine = text.includes("|--") || text.includes("|-") || text.includes("|  ");
+             if (isTabLine) return null;
+          }
+          
+          return text;
         }
 
         if (node.nodeType === Node.ELEMENT_NODE) {
@@ -55,6 +66,15 @@ export function CifraRenderer({
 
           // Handle spans (like tabs or labels)
           if (el.tagName === "SPAN") {
+            const isTab = el.className.includes("tablatura") || 
+                         el.textContent?.includes("|--") || 
+                         el.textContent?.includes("|-") ||
+                         el.textContent?.includes("|  ");
+            
+            if (!showTabs && isTab) {
+              return null;
+            }
+
             return (
               <span key={i} className={el.className}>
                 {convertToReact(el.childNodes)}
@@ -75,5 +95,5 @@ export function CifraRenderer({
     };
 
     return convertToReact(div.childNodes);
-  }, [content, transpose, performanceMode, variations, onVariationChange, chordColor, instrument]);
+  }, [content, transpose, performanceMode, variations, onVariationChange, chordColor, instrument, showTabs]);
 }

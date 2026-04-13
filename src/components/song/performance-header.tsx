@@ -14,6 +14,7 @@ import {
   Home, 
   LayoutGrid, 
   Minus, 
+  Music,
   Plus, 
   ArrowLeft, 
   ArrowRight 
@@ -33,6 +34,8 @@ export function PerformanceHeader({
   songIndex,
   goToPrev,
   goToNext,
+  showTabs,
+  setShowTabs,
 }: PerformanceHeaderProps) {
   const router = useRouter();
 
@@ -63,6 +66,17 @@ export function PerformanceHeader({
           title={showDiagrams ? "Esconder Diagramas" : "Mostrar Diagramas"}
         >
           <LayoutGrid className="w-5 h-5" />
+        </button>
+
+        <button 
+          onClick={() => setShowTabs(!showTabs)} 
+          className={cn(
+            "p-2 rounded-lg transition-all", 
+            showTabs ? "text-yellow-500 bg-white/5" : "text-zinc-500 hover:text-white"
+          )} 
+          title={showTabs ? "Esconder Tablatura" : "Mostrar Tablatura"}
+        >
+          <Music className="w-5 h-5" />
         </button>
 
         <div className="flex items-center bg-white/5 border border-white/10 rounded-xl p-1 shadow-2xl backdrop-blur-md">

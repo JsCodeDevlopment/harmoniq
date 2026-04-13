@@ -1,28 +1,28 @@
 "use client";
 
-import { cn } from "@/lib/utils";
-import { AnimatePresence, motion } from "framer-motion";
-import { Loader2, Music } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { toast } from "sonner";
+import { ChordDiagram } from "@/components/chord-diagram";
+import { KeyboardDiagram } from "@/components/keyboard-diagram";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/use-auth.hook";
 import {
   useSetlist,
   useSetlists,
   useSharedSetlist,
 } from "@/hooks/use-setlists.hook";
 import { useGetSong } from "@/hooks/use-songs.hook";
-import { useAuth } from "@/hooks/use-auth.hook";
 import { NOTES, transposeChord } from "@/lib/chords";
-import { ChordDiagram } from "@/components/chord-diagram";
-import { KeyboardDiagram } from "@/components/keyboard-diagram";
+import { cn } from "@/lib/utils";
+import { AnimatePresence, motion } from "framer-motion";
+import { Loader2, Music } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { toast } from "sonner";
 import { CifraRenderer } from "./cifra-renderer";
-import { Button } from "@/components/ui/button";
 
 // Sub-components
+import { PerformanceHeader } from "./performance-header";
 import { SongHeader } from "./song-header";
 import { SongUtilityBar } from "./song-utility-bar";
-import { PerformanceHeader } from "./performance-header";
 import { Setlist } from "./types";
 
 export function SongViewer() {
@@ -43,7 +43,7 @@ export function SongViewer() {
     }
     return "";
   }, [rawUrl, encodedId]);
-  
+
   const setlistId = searchParams.get("setlistId");
   const sharedId = searchParams.get("sharedId");
   const songIndexStr = searchParams.get("songIndex");
@@ -92,8 +92,11 @@ export function SongViewer() {
   const [performanceMode, setPerformanceMode] = useState(false);
   const [showDiagrams, setShowDiagrams] = useState(false);
   const [showSetlistSelector, setShowSetlistSelector] = useState(false);
-  const [variationsMap, setVariationsMap] = useState<Record<string, number>>({});
+  const [variationsMap, setVariationsMap] = useState<Record<string, number>>(
+    {},
+  );
   const [showSettings, setShowSettings] = useState(false);
+  const [showTabs, setShowTabs] = useState(true);
 
   // Refs for click outside
   const settingsRef = useRef<HTMLDivElement>(null);
@@ -104,12 +107,22 @@ export function SongViewer() {
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Node;
-      if (showSettings && settingsRef.current && !settingsRef.current.contains(target) && 
-          settingsBtnRef.current && !settingsBtnRef.current.contains(target)) {
+      if (
+        showSettings &&
+        settingsRef.current &&
+        !settingsRef.current.contains(target) &&
+        settingsBtnRef.current &&
+        !settingsBtnRef.current.contains(target)
+      ) {
         setShowSettings(false);
       }
-      if (showSetlistSelector && selectorRef.current && !selectorRef.current.contains(target) && 
-          selectorBtnRef.current && !selectorBtnRef.current.contains(target)) {
+      if (
+        showSetlistSelector &&
+        selectorRef.current &&
+        !selectorRef.current.contains(target) &&
+        selectorBtnRef.current &&
+        !selectorBtnRef.current.contains(target)
+      ) {
         setShowSetlistSelector(false);
       }
     };
@@ -126,8 +139,7 @@ export function SongViewer() {
       setLocalFontSize(user.font_size || "medium");
       setLocalChordColor(user.chord_color || "yellow");
       setLocalInstrument(user.instrument || "guitar");
-    } 
-    else if (!user && typeof window !== 'undefined') {
+    } else if (!user && typeof window !== "undefined") {
       const savedFontSize = localStorage.getItem("h_font_size");
       const savedChordColor = localStorage.getItem("h_chord_color");
       const savedInstrument = localStorage.getItem("h_instrument");
@@ -137,18 +149,25 @@ export function SongViewer() {
     }
   }, [user, showSettings]);
 
-  const handleUpdateSettings = async (updates: { font_size?: string; chord_color?: string; instrument?: string }) => {
+  const handleUpdateSettings = async (updates: {
+    font_size?: string;
+    chord_color?: string;
+    instrument?: string;
+  }) => {
     if (updates.font_size) {
       setLocalFontSize(updates.font_size);
-      if (typeof window !== 'undefined') localStorage.setItem("h_font_size", updates.font_size);
+      if (typeof window !== "undefined")
+        localStorage.setItem("h_font_size", updates.font_size);
     }
     if (updates.chord_color) {
       setLocalChordColor(updates.chord_color);
-      if (typeof window !== 'undefined') localStorage.setItem("h_chord_color", updates.chord_color);
+      if (typeof window !== "undefined")
+        localStorage.setItem("h_chord_color", updates.chord_color);
     }
     if (updates.instrument) {
       setLocalInstrument(updates.instrument);
-      if (typeof window !== 'undefined') localStorage.setItem("h_instrument", updates.instrument);
+      if (typeof window !== "undefined")
+        localStorage.setItem("h_instrument", updates.instrument);
     }
     if (user) {
       await updateProfile(updates);
@@ -161,7 +180,7 @@ export function SongViewer() {
       if (predefinedVariations) {
         try {
           setVariationsMap(JSON.parse(predefinedVariations));
-        } catch { }
+        } catch {}
       }
     }
   }, [setlist, songIndex]);
@@ -186,33 +205,48 @@ export function SongViewer() {
     [sharedId, setlistId, setlist, songIndex, currentKey, updateSong],
   );
 
-  const handleVersionChange = useCallback((newUrl: string) => {
-    if (!newUrl) return;
-    
-    // Encode the new URL to ID format if needed, or just update the raw URL
-    const encoded = typeof btoa !== "undefined" ? btoa(encodeURIComponent(newUrl)) : "";
-    
-    // Construct new search params while preserving setlist context
-    const params = new URLSearchParams(searchParams.toString());
-    
-    if (encodedId) {
-      params.set("id", encoded);
-    } else {
-      params.set("url", newUrl);
-    }
-    
-    // If it's in a setlist, update the setlist entry
-    if (!sharedId && setlistId && setlist?.songs[songIndex]) {
-      const targetSongId = setlist.songs[songIndex].id;
-      updateSong({
-        songId: targetSongId,
-        url: newUrl, // Saving the new version's URL
-      }).catch((err) => console.error("Could not update version in setlist", err));
-    }
+  const handleVersionChange = useCallback(
+    (newUrl: string) => {
+      if (!newUrl) return;
 
-    router.replace(`/song?${params.toString()}`);
-    toast.success("Trocando versão...", { duration: 1000 });
-  }, [searchParams, encodedId, sharedId, setlistId, setlist, songIndex, updateSong, router]);
+      // Encode the new URL to ID format if needed, or just update the raw URL
+      const encoded =
+        typeof btoa !== "undefined" ? btoa(encodeURIComponent(newUrl)) : "";
+
+      // Construct new search params while preserving setlist context
+      const params = new URLSearchParams(searchParams.toString());
+
+      if (encodedId) {
+        params.set("id", encoded);
+      } else {
+        params.set("url", newUrl);
+      }
+
+      // If it's in a setlist, update the setlist entry
+      if (!sharedId && setlistId && setlist?.songs[songIndex]) {
+        const targetSongId = setlist.songs[songIndex].id;
+        updateSong({
+          songId: targetSongId,
+          url: newUrl, // Saving the new version's URL
+        }).catch((err) =>
+          console.error("Could not update version in setlist", err),
+        );
+      }
+
+      router.replace(`/song?${params.toString()}`);
+      toast.success("Trocando versão...", { duration: 1000 });
+    },
+    [
+      searchParams,
+      encodedId,
+      sharedId,
+      setlistId,
+      setlist,
+      songIndex,
+      updateSong,
+      router,
+    ],
+  );
 
   const handleAddToSetlist = useCallback(
     async (targetSetlistId: number) => {
@@ -232,7 +266,9 @@ export function SongViewer() {
         });
         setShowSetlistSelector(false);
       } catch (err: unknown) {
-        const msg = (err as any).response?.data?.message || "Não foi possível adicionar a música";
+        const msg =
+          (err as any).response?.data?.message ||
+          "Não foi possível adicionar a música";
         toast.error("Erro ao adicionar", { description: msg });
       }
     },
@@ -242,9 +278,12 @@ export function SongViewer() {
   const goToNext = () => {
     if (setlist && songIndex < setlist.songs.length - 1) {
       const next = setlist.songs[songIndex + 1];
-      const encodedUrl = typeof btoa !== "undefined" ? btoa(encodeURIComponent(next.url)) : "";
+      const encodedUrl =
+        typeof btoa !== "undefined" ? btoa(encodeURIComponent(next.url)) : "";
       const baseUrl = `/song?id=${encodedUrl}&songIndex=${songIndex + 1}`;
-      const finalUrl = sharedId ? `${baseUrl}&sharedId=${sharedId}` : `${baseUrl}&setlistId=${setlistId}`;
+      const finalUrl = sharedId
+        ? `${baseUrl}&sharedId=${sharedId}`
+        : `${baseUrl}&setlistId=${setlistId}`;
       router.push(finalUrl);
     }
   };
@@ -252,9 +291,12 @@ export function SongViewer() {
   const goToPrev = () => {
     if (setlist && songIndex > 0) {
       const prev = setlist.songs[songIndex - 1];
-      const encodedUrl = typeof btoa !== "undefined" ? btoa(encodeURIComponent(prev.url)) : "";
+      const encodedUrl =
+        typeof btoa !== "undefined" ? btoa(encodeURIComponent(prev.url)) : "";
       const baseUrl = `/song?id=${encodedUrl}&songIndex=${songIndex - 1}`;
-      const finalUrl = sharedId ? `${baseUrl}&sharedId=${sharedId}` : `${baseUrl}&setlistId=${setlistId}`;
+      const finalUrl = sharedId
+        ? `${baseUrl}&sharedId=${sharedId}`
+        : `${baseUrl}&setlistId=${setlistId}`;
       router.push(finalUrl);
     }
   };
@@ -295,6 +337,16 @@ export function SongViewer() {
   };
 
   const songContent = song?.content;
+  const hasTabs = useMemo(() => {
+    if (!songContent) return false;
+    return (
+      songContent.includes("tablatura") ||
+      songContent.includes("|--") ||
+      songContent.includes("|  ") ||
+      songContent.includes("|-")
+    );
+  }, [songContent]);
+
   const uniqueChords = useMemo(() => {
     if (!songContent) return [];
     const matches = songContent.match(/<b>(.*?)<\/b>/g) || [];
@@ -308,8 +360,13 @@ export function SongViewer() {
   if (loading) {
     return (
       <div className="min-h-screen bg-zinc-50 flex flex-col items-center justify-center gap-6">
-        <Loader2 className="w-10 h-10 text-yellow-500 animate-spin" strokeWidth={1.5} />
-        <p className="text-zinc-400 font-medium text-sm tracking-wide animate-pulse">Preparando sua cifra...</p>
+        <Loader2
+          className="w-10 h-10 text-yellow-500 animate-spin"
+          strokeWidth={1.5}
+        />
+        <p className="text-zinc-400 font-medium text-sm tracking-wide animate-pulse">
+          Preparando sua cifra...
+        </p>
       </div>
     );
   }
@@ -321,21 +378,40 @@ export function SongViewer() {
           <Music className="w-8 h-8 text-zinc-400" />
         </div>
         <div className="space-y-1">
-          <h2 className="text-zinc-900 text-xl font-semibold">Falha ao carregar</h2>
+          <h2 className="text-zinc-900 text-xl font-semibold">
+            Falha ao carregar
+          </h2>
           <p className="text-zinc-500 text-sm max-w-xs">{error}</p>
         </div>
         <div className="flex gap-3">
-          <Button variant="outline" onClick={() => router.back()} className="rounded-lg border-zinc-200 text-zinc-600">Voltar</Button>
-          <Button variant="yellow" onClick={() => router.push("/")} className="rounded-lg font-bold">Ir para o Início</Button>
+          <Button
+            variant="outline"
+            onClick={() => router.back()}
+            className="rounded-lg border-zinc-200 text-zinc-600"
+          >
+            Voltar
+          </Button>
+          <Button
+            variant="yellow"
+            onClick={() => router.push("/")}
+            className="rounded-lg font-bold"
+          >
+            Ir para o Início
+          </Button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className={cn("min-h-screen transition-colors duration-500 selection:bg-yellow-500/30", performanceMode ? "bg-black text-white" : "bg-zinc-50 text-zinc-900")}>
+    <div
+      className={cn(
+        "min-h-screen transition-colors duration-500 selection:bg-yellow-500/30",
+        performanceMode ? "bg-black text-white" : "bg-zinc-50 text-zinc-900",
+      )}
+    >
       {!performanceMode && (
-        <SongHeader 
+        <SongHeader
           title={song?.title}
           artist={song?.artist}
           url={url}
@@ -360,12 +436,19 @@ export function SongViewer() {
           keyboardUrl={song?.keyboard_url}
           currentUrl={url}
           onVersionChange={handleVersionChange}
+          showTabs={showTabs}
+          setShowTabs={setShowTabs}
         />
       )}
 
-      <main className={cn("max-w-4xl mx-auto transition-all duration-500", performanceMode ? "mt-0 px-4 md:px-8" : "mt-6 md:mt-12 px-4 md:px-6")}>
+      <main
+        className={cn(
+          "max-w-4xl mx-auto transition-all duration-500",
+          performanceMode ? "mt-0 px-4 md:px-8" : "mt-6 md:mt-12 px-4 md:px-6",
+        )}
+      >
         {performanceMode && (
-          <PerformanceHeader 
+          <PerformanceHeader
             onExit={() => setPerformanceMode(false)}
             showDiagrams={showDiagrams}
             setShowDiagrams={setShowDiagrams}
@@ -376,11 +459,13 @@ export function SongViewer() {
             songIndex={songIndex}
             goToPrev={goToPrev}
             goToNext={goToNext}
+            showTabs={showTabs}
+            setShowTabs={setShowTabs}
           />
         )}
 
         {!performanceMode && (
-          <SongUtilityBar 
+          <SongUtilityBar
             currentKey={currentKey}
             originalKey={song?.key}
             transpose={transpose}
@@ -404,31 +489,113 @@ export function SongViewer() {
             localChordColor={localChordColor}
             localInstrument={localInstrument}
             handleUpdateSettings={handleUpdateSettings}
+            showTabs={showTabs}
+            setShowTabs={setShowTabs}
           />
         )}
 
-        <div className={cn("transition-all duration-700", performanceMode ? "pt-24" : "mt-0")}>
+        <div
+          className={cn(
+            "transition-all duration-700",
+            performanceMode ? "pt-24" : "mt-0",
+          )}
+        >
           <AnimatePresence>
             {showDiagrams && uniqueChords.length > 0 && (
-              <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden mb-8">
-                <div className={cn("p-4 md:p-6 rounded-2xl border transition-colors", performanceMode ? "bg-zinc-900 border-white/5" : "bg-white border-zinc-200 shadow-sm")}>
-                  <h3 className={cn("text-[10px] font-bold uppercase tracking-widest mb-6 block", performanceMode ? "text-zinc-500" : "text-zinc-400")}>Diagramas da Música</h3>
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                className="overflow-hidden mb-8"
+              >
+                <div
+                  className={cn(
+                    "p-4 md:p-6 rounded-2xl border transition-colors",
+                    performanceMode
+                      ? "bg-zinc-900 border-white/5"
+                      : "bg-white border-zinc-200 shadow-sm",
+                  )}
+                >
+                  <h3
+                    className={cn(
+                      "text-[10px] font-bold uppercase tracking-widest mb-6 block",
+                      performanceMode ? "text-zinc-500" : "text-zinc-400",
+                    )}
+                  >
+                    Diagramas da Música
+                  </h3>
                   <div className="flex flex-wrap gap-6 md:gap-8">
-                    {uniqueChords.map((chord) => (
+                    {uniqueChords.map((chord) =>
                       localInstrument === "keyboard" ? (
-                        <KeyboardDiagram key={chord} name={chord} dark={performanceMode} />
+                        <KeyboardDiagram
+                          key={chord}
+                          name={chord}
+                          dark={performanceMode}
+                        />
                       ) : (
-                        <ChordDiagram key={chord} name={chord} dark={performanceMode} variationIndex={variationsMap[chord] || 0} />
-                      )
-                    ))}
+                        <ChordDiagram
+                          key={chord}
+                          name={chord}
+                          dark={performanceMode}
+                          variationIndex={variationsMap[chord] || 0}
+                        />
+                      ),
+                    )}
                   </div>
                 </div>
               </motion.div>
             )}
           </AnimatePresence>
 
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.8 }} className={cn("cifra-content transition-all duration-300 overflow-x-auto pb-8 relative", performanceMode ? "tracking-wide font-medium" : "text-zinc-900 font-medium")} style={{ whiteSpace: "pre", fontFamily: "monospace", fontSize: performanceMode ? (localFontSize === 'xxsmall' ? '12px' : localFontSize === 'xsmall' ? '14px' : localFontSize === 'small' ? '18px' : localFontSize === 'medium' ? '24px' : localFontSize === 'large' ? '36px' : '48px') : (localFontSize === 'xxsmall' ? '9px' : localFontSize === 'xsmall' ? '10px' : localFontSize === 'small' ? '11px' : localFontSize === 'medium' ? '14px' : localFontSize === 'large' ? '18px' : '22px'), lineHeight: performanceMode ? '2.1' : '1.9' }}>
-            <CifraRenderer content={song?.content || ""} transpose={transpose} performanceMode={performanceMode} chordColor={localChordColor} instrument={localInstrument} variations={variationsMap} onVariationChange={handleVariationChange} />
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.8 }}
+            className={cn(
+              "cifra-content transition-all duration-300 overflow-x-auto pb-8 relative",
+              performanceMode
+                ? "tracking-wide font-medium"
+                : "text-zinc-900 font-medium",
+            )}
+            style={{
+              whiteSpace: "pre",
+              fontFamily: "monospace",
+              fontSize: performanceMode
+                ? localFontSize === "xxsmall"
+                  ? "12px"
+                  : localFontSize === "xsmall"
+                    ? "14px"
+                    : localFontSize === "small"
+                      ? "18px"
+                      : localFontSize === "medium"
+                        ? "24px"
+                        : localFontSize === "large"
+                          ? "36px"
+                          : "48px"
+                : localFontSize === "xxsmall"
+                  ? "9px"
+                  : localFontSize === "xsmall"
+                    ? "10px"
+                    : localFontSize === "small"
+                      ? "11px"
+                      : localFontSize === "medium"
+                        ? "14px"
+                        : localFontSize === "large"
+                          ? "18px"
+                          : "22px",
+              lineHeight: performanceMode ? "2.1" : "1.9",
+            }}
+          >
+            <CifraRenderer
+              content={song?.content || ""}
+              transpose={transpose}
+              performanceMode={performanceMode}
+              chordColor={localChordColor}
+              instrument={localInstrument}
+              variations={variationsMap}
+              onVariationChange={handleVariationChange}
+              showTabs={showTabs}
+            />
           </motion.div>
           <div className="h-48" />
         </div>

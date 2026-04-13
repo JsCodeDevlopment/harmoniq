@@ -43,6 +43,8 @@ export function SongHeader({
   keyboardUrl,
   currentUrl,
   onVersionChange,
+  showTabs,
+  setShowTabs,
 }: SongHeaderProps) {
   const router = useRouter();
   const isSaved = typeof window !== 'undefined' ? localStorage.getItem(`song:${url}`) : false;
@@ -156,6 +158,8 @@ export function SongHeader({
         localInstrument={localInstrument}
         onUpdate={handleUpdateSettings}
         popoverRef={settingsRef}
+        showTabs={showTabs}
+        onToggleTabs={setShowTabs}
       />
 
       <SetlistSelectorPopover 

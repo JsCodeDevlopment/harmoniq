@@ -43,6 +43,8 @@ export interface SongHeaderProps {
   keyboardUrl?: string;
   currentUrl: string;
   onVersionChange?: (url: string) => void;
+  showTabs: boolean;
+  setShowTabs: (val: boolean) => void;
 }
 
 export interface SongUtilityBarProps {
@@ -70,6 +72,8 @@ export interface SongUtilityBarProps {
   localChordColor: string;
   localInstrument: string;
   handleUpdateSettings: (updates: { font_size?: string; chord_color?: string; instrument?: string }) => void;
+  showTabs: boolean;
+  setShowTabs: (val: boolean) => void;
 }
 
 export interface PerformanceHeaderProps {
@@ -83,4 +87,6 @@ export interface PerformanceHeaderProps {
   songIndex: number;
   goToPrev: () => void;
   goToNext: () => void;
+  showTabs: boolean;
+  setShowTabs: (val: boolean) => void;
 }
