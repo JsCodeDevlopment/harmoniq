@@ -2,6 +2,23 @@
 
 Acompanhe as últimas melhorias, correções e novas funcionalidades da plataforma Harmoniq.
 
+## 📅 [1.4.0] - 2026-04-12 - "Foco na Performance & Limpeza Visual"
+
+Esta atualização atende a um dos pedidos mais frequentes dos músicos que buscam uma leitura limpa durante o show, permitindo focar exclusivamente na letra e nos acordes sem distrações técnicas.
+
+### 🚀 Novas Funcionalidades
+
+- **Alternância de Tablaturas**: Introduzida a capacidade de ocultar ou exibir tablaturas instantaneamente. O motor do Harmoniq agora identifica blocos de tablatura (`|---`) e oferece um controle dinâmico para removê-los da visualização.
+- **Botão de Ação Rápida**: Novo atalho "Ocultar Tabs" adicionado à barra utilitária principal (Desktop) e ao cabeçalho do Modo Performance (Live), facilitando ajustes rápidos sem interromper o fluxo da música.
+- **Configuração Mobile**: Integrado o controle de tablaturas no menu de configurações de exibição no celular, com um interruptor (toggle) otimizado para toque.
+
+### 🛠️ Melhorias Técnicas
+
+- **Parser de Conteúdo Inteligente**: Refatoração do `CifraRenderer` para processar o DOM da cifra de forma seletiva, filtrando nós de texto e elementos `<span>` que contenham padrões de tablatura.
+- **Estabilidade de Interface**: Resolvido problema de identificação de propriedades no cabeçalho e utilitários que causavam erros de renderização em certas navegações.
+
+---
+
 ## 📅 [1.3.0] - 2026-04-06 - "Teclado & Interface Premium"
 
 Esta atualização foca na expansão para músicos de teclas e em uma refinação profunda da interface para reduzir a sobrecarga visual e melhorar a performance em qualquer tela.
