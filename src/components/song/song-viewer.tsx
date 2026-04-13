@@ -438,6 +438,8 @@ export function SongViewer() {
           onVersionChange={handleVersionChange}
           showTabs={showTabs}
           setShowTabs={setShowTabs}
+          showDiagrams={showDiagrams}
+          setShowDiagrams={setShowDiagrams}
         />
       )}
 

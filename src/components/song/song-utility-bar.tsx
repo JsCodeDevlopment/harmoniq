@@ -57,7 +57,7 @@ export function SongUtilityBar({
   ];
 
   return (
-    <div className="sticky top-[95px] md:top-[86px] z-40 mb-10 px-2 md:px-0">
+    <div className="sticky top-[100px] md:top-[86px] z-40 mb-10 px-2 md:px-0">
       <div className="bg-white/90 backdrop-blur-2xl border border-zinc-200/60 rounded-3xl shadow-[0_30px_70px_rgba(0,0,0,0.1)] overflow-hidden flex flex-col transition-all duration-500">
         {/* Row 1: Core Controls (Mobile High Density) */}
         <div className="flex flex-row md:flex-row items-center divide-x divide-zinc-100">
@@ -270,20 +270,22 @@ export function SongUtilityBar({
               </div>
               <div className="flex items-center gap-3 bg-zinc-100/50 px-3 py-1.5 rounded-xl border border-zinc-200/50 h-[38px] shadow-sm">
                 <Palette className="size-3.5 text-zinc-300" />
-                {["yellow", "blue", "green"].map((c) => (
+                {[
+                  { id: "yellow", color: "bg-yellow-400" },
+                  { id: "blue", color: "bg-blue-400" },
+                  { id: "green", color: "bg-green-400" },
+                  { id: "white", color: "bg-zinc-200" },
+                  { id: "orange", color: "bg-orange-400" },
+                ].map((c) => (
                   <button
-                    key={c}
-                    onClick={() => handleUpdateSettings({ chord_color: c })}
+                    key={c.id}
+                    onClick={() => handleUpdateSettings({ chord_color: c.id })}
                     className={cn(
                       "size-4 rounded-full border-2 transition-all shadow-sm active:scale-90",
-                      c === "yellow"
-                        ? "bg-yellow-400"
-                        : c === "blue"
-                          ? "bg-blue-400"
-                          : "bg-green-400",
-                      localChordColor === c
+                      c.color,
+                      localChordColor === c.id
                         ? "scale-125 border-white ring-1 ring-zinc-400"
-                        : "border-transparent opacity-30 hover:opacity-100",
+                        : "border-transparent opacity-60 hover:opacity-100",
                     )}
                   />
                 ))}

@@ -45,6 +45,8 @@ export interface SongHeaderProps {
   onVersionChange?: (url: string) => void;
   showTabs: boolean;
   setShowTabs: (val: boolean) => void;
+  showDiagrams: boolean;
+  setShowDiagrams: (val: boolean) => void;
 }
 
 export interface SongUtilityBarProps {

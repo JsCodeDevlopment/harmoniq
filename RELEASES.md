@@ -9,12 +9,14 @@ Esta atualização atende a um dos pedidos mais frequentes dos músicos que busc
 ### 🚀 Novas Funcionalidades
 
 - **Alternância de Tablaturas**: Introduzida a capacidade de ocultar ou exibir tablaturas instantaneamente. O motor do Harmoniq agora identifica blocos de tablatura (`|---`) e oferece um controle dinâmico para removê-los da visualização.
-- **Botão de Ação Rápida**: Novo atalho "Ocultar Tabs" adicionado à barra utilitária principal (Desktop) e ao cabeçalho do Modo Performance (Live), facilitando ajustes rápidos sem interromper o fluxo da música.
-- **Configuração Mobile**: Integrado o controle de tablaturas no menu de configurações de exibição no celular, com um interruptor (toggle) otimizado para toque.
+- **Shapes no Mobile**: Integrada a opção de ativar/desativar os diagramas de acordes (Shapes) diretamente no menu de configurações mobile, garantindo controle total em telas pequenas.
+- **Paleta de Cores Expandida**: A barra utilitária desktop agora exibe todas as 5 variações de cores premium para os acordes, garantindo paridade visual com o menu de configurações.
+- **Modo Palco Inteligente**: O cabeçalho no Modo Performance agora utiliza detecção de presença. Ele aparece ao tocar na tela ou mover o mouse e se oculta automaticamente após 3 segundos de inatividade, garantindo imersão total sem perder o botão de "Sair".
 
 ### 🛠️ Melhorias Técnicas
 
 - **Parser de Conteúdo Inteligente**: Refatoração do `CifraRenderer` para processar o DOM da cifra de forma seletiva, filtrando nós de texto e elementos `<span>` que contenham padrões de tablatura.
+- **UX de Navegação**: Implementação de listeners globais de interação (`mousemove`, `touchstart`, `mousedown`) para controle de visibilidade da interface em modos de alta imersão.
 - **Estabilidade de Interface**: Resolvido problema de identificação de propriedades no cabeçalho e utilitários que causavam erros de renderização em certas navegações.
 
 ---

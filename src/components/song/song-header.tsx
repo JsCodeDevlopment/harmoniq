@@ -45,6 +45,8 @@ export function SongHeader({
   onVersionChange,
   showTabs,
   setShowTabs,
+  showDiagrams,
+  setShowDiagrams,
 }: SongHeaderProps) {
   const router = useRouter();
   const isSaved = typeof window !== 'undefined' ? localStorage.getItem(`song:${url}`) : false;
@@ -160,6 +162,8 @@ export function SongHeader({
         popoverRef={settingsRef}
         showTabs={showTabs}
         onToggleTabs={setShowTabs}
+        showDiagrams={showDiagrams}
+        onToggleDiagrams={setShowDiagrams}
       />
 
       <SetlistSelectorPopover 

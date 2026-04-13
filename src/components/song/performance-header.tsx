@@ -20,6 +20,7 @@ import {
   ArrowRight 
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { NOTES } from "@/lib/chords";
 import { PerformanceHeaderProps } from "./types";
 
@@ -38,9 +39,37 @@ export function PerformanceHeader({
   setShowTabs,
 }: PerformanceHeaderProps) {
   const router = useRouter();
+  const [isVisible, setIsVisible] = useState(true);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const showHeader = useCallback(() => {
+    setIsVisible(true);
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => {
+      setIsVisible(f => false);
+    }, 3000);
+  }, []);
+
+  useEffect(() => {
+    showHeader();
+    window.addEventListener('mousemove', showHeader);
+    window.addEventListener('touchstart', showHeader);
+    window.addEventListener('mousedown', showHeader);
+    return () => {
+      window.removeEventListener('mousemove', showHeader);
+      window.removeEventListener('touchstart', showHeader);
+      window.removeEventListener('mousedown', showHeader);
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, [showHeader]);
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-50 p-4 md:p-6 flex items-center justify-between bg-black/80 backdrop-blur-xl border-b border-white/5 opacity-0 hover:opacity-100 transition-opacity duration-300">
+    <div 
+      className={cn(
+        "fixed top-0 left-0 right-0 z-50 p-4 md:p-6 flex items-center justify-between bg-black/95 backdrop-blur-2xl border-b border-white/10 transition-all duration-500",
+        isVisible ? "translate-y-0 opacity-100" : "-translate-y-full opacity-0"
+      )}
+    >
       <div className="flex items-center gap-4">
         <button 
           onClick={onExit} 

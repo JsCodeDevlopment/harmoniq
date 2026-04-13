@@ -2,7 +2,14 @@
 
 import { cn } from "@/lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
-import { Guitar, LayoutPanelLeft, Music, Palette, Type } from "lucide-react";
+import {
+  Guitar,
+  LayoutGrid,
+  LayoutPanelLeft,
+  Music,
+  Palette,
+  Type,
+} from "lucide-react";
 import { RefObject } from "react";
 
 interface SettingsPopoverProps {
@@ -18,6 +25,8 @@ interface SettingsPopoverProps {
   popoverRef: RefObject<HTMLDivElement | null>;
   showTabs: boolean;
   onToggleTabs: (val: boolean) => void;
+  showDiagrams: boolean;
+  onToggleDiagrams: (val: boolean) => void;
 }
 
 export function SettingsPopover({
@@ -29,6 +38,8 @@ export function SettingsPopover({
   popoverRef,
   showTabs,
   onToggleTabs,
+  showDiagrams,
+  onToggleDiagrams,
 }: SettingsPopoverProps) {
   return (
     <AnimatePresence>
@@ -74,6 +85,7 @@ export function SettingsPopover({
               <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-zinc-400">
                 <Palette className="w-3 h-3" /> Cor dos Acordes
               </div>
+
               <div className="flex flex-wrap gap-2 justify-between">
                 {[
                   { id: "yellow", color: "bg-yellow-500" },
@@ -104,49 +116,95 @@ export function SettingsPopover({
               <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-zinc-400">
                 <Music className="w-3 h-3" /> Visualização
               </div>
-              <button
-                onClick={() => onToggleTabs(!showTabs)}
-                className={cn(
-                  "w-full py-3 px-4 flex items-center justify-between rounded-xl transition-all border",
-                  showTabs
-                    ? "bg-yellow-50 border-yellow-200 text-yellow-800"
-                    : "bg-zinc-50 border-zinc-100 text-zinc-500",
-                )}
-              >
-                <div className="flex items-center gap-3">
-                  <div
-                    className={cn(
-                      "w-8 h-8 rounded-lg flex items-center justify-center transition-colors",
-                      showTabs
-                        ? "bg-yellow-500 text-white"
-                        : "bg-zinc-200 text-zinc-400",
-                    )}
-                  >
-                    <Music className="w-4 h-4" />
-                  </div>
-                  <div className="text-left">
-                    <p className="text-[10px] font-bold uppercase tracking-tight">
-                      Exibir Tablaturas
-                    </p>
-                    <p className="text-[9px] opacity-70">
-                      {showTabs ? "Habilitado" : "Desabilitado"}
-                    </p>
-                  </div>
-                </div>
-                <div
+              <div className="flex flex-col gap-2">
+                <button
+                  onClick={() => onToggleTabs(!showTabs)}
                   className={cn(
-                    "w-10 h-5 rounded-full relative transition-colors p-1",
-                    showTabs ? "bg-yellow-500" : "bg-zinc-300",
+                    "w-full py-3 px-4 flex items-center justify-between rounded-xl transition-all border",
+                    showTabs
+                      ? "bg-yellow-50 border-yellow-200 text-yellow-800"
+                      : "bg-zinc-50 border-zinc-100 text-zinc-500",
                   )}
                 >
+                  <div className="flex items-center gap-3">
+                    <div
+                      className={cn(
+                        "w-8 h-8 rounded-lg flex items-center justify-center transition-colors",
+                        showTabs
+                          ? "bg-yellow-500 text-white"
+                          : "bg-zinc-200 text-zinc-400",
+                      )}
+                    >
+                      <Music className="w-4 h-4" />
+                    </div>
+                    <div className="text-left">
+                      <p className="text-[10px] font-bold uppercase tracking-tight">
+                        Exibir Tablaturas
+                      </p>
+                      <p className="text-[9px] opacity-70">
+                        {showTabs ? "Habilitado" : "Desabilitado"}
+                      </p>
+                    </div>
+                  </div>
                   <div
                     className={cn(
-                      "w-3 h-3 bg-white rounded-full transition-all",
-                      showTabs ? "ml-5" : "ml-0",
+                      "w-10 h-5 rounded-full relative transition-colors p-1",
+                      showTabs ? "bg-yellow-500" : "bg-zinc-300",
                     )}
-                  />
-                </div>
-              </button>
+                  >
+                    <div
+                      className={cn(
+                        "w-3 h-3 bg-white rounded-full transition-all",
+                        showTabs ? "ml-5" : "ml-0",
+                      )}
+                    />
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => onToggleDiagrams(!showDiagrams)}
+                  className={cn(
+                    "w-full py-3 px-4 flex items-center justify-between rounded-xl transition-all border",
+                    showDiagrams
+                      ? "bg-yellow-50 border-yellow-200 text-yellow-800"
+                      : "bg-zinc-50 border-zinc-100 text-zinc-500",
+                  )}
+                >
+                  <div className="flex items-center gap-3">
+                    <div
+                      className={cn(
+                        "w-8 h-8 rounded-lg flex items-center justify-center transition-colors",
+                        showDiagrams
+                          ? "bg-yellow-500 text-white"
+                          : "bg-zinc-200 text-zinc-400",
+                      )}
+                    >
+                      <LayoutGrid className="w-4 h-4" />
+                    </div>
+                    <div className="text-left">
+                      <p className="text-[10px] font-bold uppercase tracking-tight">
+                        Exibir Shapes
+                      </p>
+                      <p className="text-[9px] opacity-70">
+                        {showDiagrams ? "Habilitado" : "Desabilitado"}
+                      </p>
+                    </div>
+                  </div>
+                  <div
+                    className={cn(
+                      "w-10 h-5 rounded-full relative transition-colors p-1",
+                      showDiagrams ? "bg-yellow-500" : "bg-zinc-300",
+                    )}
+                  >
+                    <div
+                      className={cn(
+                        "w-3 h-3 bg-white rounded-full transition-all",
+                        showDiagrams ? "ml-5" : "ml-0",
+                      )}
+                    />
+                  </div>
+                </button>
+              </div>
             </div>
 
             <div className="space-y-3 pb-2 pt-2 border-t border-zinc-100">
