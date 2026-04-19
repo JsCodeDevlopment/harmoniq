@@ -22,7 +22,9 @@ import { CifraRenderer } from "./cifra-renderer";
 // Sub-components
 import { PerformanceHeader } from "./performance-header";
 import { SongHeader } from "./song-header";
+import { SongRecommendations } from "./song-recommendations";
 import { SongUtilityBar } from "./song-utility-bar";
+
 import { Setlist } from "./types";
 
 export function SongViewer() {
@@ -599,8 +601,17 @@ export function SongViewer() {
               showTabs={showTabs}
             />
           </motion.div>
+
+          {!performanceMode && (
+            <SongRecommendations
+              recommendations={song?.recommendations || []}
+            />
+          )}
+
           <div className="h-48" />
         </div>
+
+
       </main>
     </div>
   );

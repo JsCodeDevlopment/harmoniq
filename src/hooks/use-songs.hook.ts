@@ -13,7 +13,14 @@ export interface Song {
   simplified_url?: string;
   principal_url?: string;
   keyboard_url?: string;
+  recommendations: {
+    title: string;
+    artist: string;
+    url: string;
+    image?: string;
+  }[];
 }
+
 
 export function useSearchSongs(query: string) {
   return useQuery<Song[]>({
