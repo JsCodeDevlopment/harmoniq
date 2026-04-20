@@ -150,6 +150,44 @@ body {
   --color-chart-3: #274653;
   --color-chart-4: #e9c46a;
   --color-chart-5: #f4a261;
+
+  @keyframes spotlight {
+    0% {
+      opacity: 0;
+      transform: translate(-72%, -62%) scale(0.5);
+    }
+    100% {
+      opacity: 1;
+      transform: translate(-50%, -40%) scale(1);
+    }
+  }
+
+  @keyframes beam {
+    0% {
+      opacity: 0;
+      transform: translateX(-100%) scaleX(0);
+    }
+    50% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+      transform: translateX(100%) scaleX(1);
+    }
+  }
+
+  @keyframes shine {
+    from {
+      left: -100%;
+    }
+    to {
+      left: 200%;
+    }
+  }
+
+  --animate-spotlight: spotlight 2s ease .75s 1 forwards;
+  --animate-beam: beam 4s linear infinite;
+  --animate-shine: shine 1.5s ease-in-out;
 }
 
 
