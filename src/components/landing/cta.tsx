@@ -1,45 +1,58 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
-import { ChevronRight, Music } from "lucide-react";
+import { ChevronRight, Music, Sparkles } from "lucide-react";
 
 export function CTA() {
   return (
-    <section id="about" className="py-48 px-6 text-center bg-yellow-500">
-      <div className="max-w-4xl mx-auto">
+    <section id="about" className="py-52 px-6 text-center bg-yellow-500 relative overflow-hidden">
+      {/* Subtle organic background elements */}
+      <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-white/10 blur-[100px] rounded-full -translate-y-1/2 translate-x-1/2" />
+      <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-black/5 blur-[80px] rounded-full translate-y-1/2 -translate-x-1/2" />
+
+      <div className="max-w-4xl mx-auto relative z-10">
         <motion.div
-          initial={{ opacity: 0, scale: 0.98 }}
-          whileInView={{ opacity: 1, scale: 1 }}
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.8 }}
+          transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
         >
-          <div className="w-20 h-20 bg-black rounded-2xl flex items-center justify-center mx-auto mb-12 shadow-2xl transition-all duration-500">
-            <Music className="w-10 h-10 text-yellow-500" strokeWidth={2} />
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-black text-yellow-500 text-[10px] font-black uppercase tracking-[0.4em] mb-12 shadow-2xl">
+            <Sparkles className="w-3 h-3" />
+            Performance Elevada
           </div>
-          <h2 className="text-5xl md:text-7xl font-semibold font-outfit mb-8 tracking-tight text-black leading-tight">
-            Pronto para elevar o seu <br />
-            <span className="opacity-60">louvor ao próximo nível?</span>
+
+          <div className="w-24 h-24 bg-black rounded-[2rem] flex items-center justify-center mx-auto mb-12 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.3)] group transition-transform hover:scale-105 duration-700">
+            <Music className="w-10 h-10 text-yellow-500" strokeWidth={2.5} />
+          </div>
+
+          <h2 className="text-[clamp(2.5rem,7.5vw,5.5rem)] font-black font-outfit mb-10 tracking-[-0.05em] text-black leading-[0.9]">
+            Eleve o seu louvor <br />
+            <span className="opacity-40 italic font-light">ao próximo nível.</span>
           </h2>
-          <p className="text-black/70 text-lg md:text-xl mb-16 max-w-xl mx-auto font-medium">
-            Junte-se a milhares de músicos que buscam excelência e simplicidade
-            na plataforma mais profissional do mercado.
+
+          <p className="text-black/80 text-lg md:text-xl mb-16 max-w-xl mx-auto font-medium leading-relaxed">
+            Una-se a músicos que buscam a perfeição. A plataforma definitiva 
+            para ensaios produtivos e cultos inspirados.
           </p>
-          <div className="flex flex-col md:flex-row items-center justify-center gap-4">
-            <Button
-              size="lg"
-              className="w-full md:w-auto h-14 px-10 rounded-xl bg-black text-white font-semibold text-lg hover:bg-zinc-900 transition-all shadow-xl flex items-center justify-center gap-2.5 outline-none border-none cursor-pointer"
+
+          <div className="flex flex-col md:flex-row items-center justify-center gap-6">
+            <button
+              className="group relative h-16 px-12 rounded-full bg-black text-yellow-500 font-black text-xs uppercase tracking-[0.2em] shadow-[0_20px_40px_rgba(0,0,0,0.2)] hover:shadow-[0_30px_60px_rgba(0,0,0,0.3)] transition-all overflow-hidden"
             >
-              Começar agora{" "}
-              <ChevronRight className="w-5 h-5" strokeWidth={2.5} />
-            </Button>
-            <Button
-              size="lg"
-              variant="ghost"
-              className="w-full md:w-auto h-14 px-10 rounded-xl border-black text-black font-semibold text-lg hover:bg-black/5 transition-all cursor-pointer"
+              <span className="relative z-10 flex items-center gap-3">
+                Começar agora
+                <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" strokeWidth={3} />
+              </span>
+              {/* Shine animation overlay */}
+              <div className="absolute top-0 -inset-full h-full w-1/2 z-20 block transform -skew-x-12 bg-gradient-to-r from-transparent via-white/10 to-transparent group-hover:animate-shine" />
+            </button>
+
+            <button
+              className="h-16 px-12 rounded-full border-2 border-black/10 text-black font-black text-xs uppercase tracking-[0.2em] hover:bg-black/5 transition-all"
             >
               Ver demonstração
-            </Button>
+            </button>
           </div>
         </motion.div>
       </div>

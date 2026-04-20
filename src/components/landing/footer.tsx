@@ -4,53 +4,67 @@ import { Music } from "lucide-react";
 
 export function Footer() {
   return (
-    <footer className="py-20 px-6 border-t border-white/5 bg-black">
+    <footer className="py-24 px-6 bg-[#020202] border-t border-white/[0.03]">
       <div className="max-w-7xl mx-auto flex flex-col items-center text-center">
-        <div className="flex items-center gap-3 mb-8">
-          <div className="w-8 h-8 bg-zinc-900 rounded-lg flex items-center justify-center border border-white/5">
-            <Music className="w-4 h-4 text-yellow-500" />
+        {/* Logo Section */}
+        <div className="flex items-center gap-4 mb-10">
+          <div className="w-12 h-12 bg-yellow-500 rounded-2xl flex items-center justify-center shadow-[0_10px_30px_rgba(234,179,8,0.2)]">
+            <Music className="w-6 h-6 text-black" strokeWidth={2.5} />
           </div>
-          <span className="text-xl font-bold font-outfit tracking-tight text-white">
+          <span className="text-3xl font-black font-outfit tracking-[-0.05em] text-white">
             Harmoniq
           </span>
         </div>
 
-        <p className="text-zinc-500 text-sm leading-relaxed font-medium mb-10 max-w-md">
-          Plataforma definitiva para músicos de louvor. Focada em performance,
-          simplicidade e precisão musical.
+        {/* Description Section */}
+        <p className="text-zinc-500 text-lg md:text-xl leading-relaxed font-medium mb-12 max-w-xl opacity-80">
+          Plataforma definitiva para músicos de louvor. Desenhada para{" "}
+          <span className="text-zinc-200">
+            performance, simplicidade e precisão musical.
+          </span>
         </p>
 
-        <div className="flex gap-8 mb-12">
+        {/* Links Grid */}
+        <div className="flex flex-wrap justify-center gap-10 mb-20">
           <a
             href="https://github.com/JsCodeDevlopment"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-zinc-500 hover:text-white transition-colors text-sm font-medium"
+            className="group flex items-center gap-2 text-zinc-600 hover:text-white transition-all text-xs font-black uppercase tracking-[0.3em]"
           >
             GitHub
+            <div className="w-1.5 h-1.5 rounded-full bg-yellow-500 opacity-0 group-hover:opacity-100 transition-opacity" />
           </a>
           <a
             href="https://www.linkedin.com/in/jscodedevelopment/"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-zinc-500 hover:text-white transition-colors text-sm font-medium"
+            className="group flex items-center gap-2 text-zinc-600 hover:text-white transition-all text-xs font-black uppercase tracking-[0.3em]"
           >
             LinkedIn
+            <div className="w-1.5 h-1.5 rounded-full bg-yellow-500 opacity-0 group-hover:opacity-100 transition-opacity" />
           </a>
           <a
-            href="mailto:contato@harmoniq.com"
-            className="text-zinc-500 hover:text-white transition-colors text-sm font-medium"
+            href="mailto:jonatasilva118@gmail.com"
+            className="group flex items-center gap-2 text-zinc-600 hover:text-white transition-all text-xs font-black uppercase tracking-[0.3em]"
           >
             Email
+            <div className="w-1.5 h-1.5 rounded-full bg-yellow-500 opacity-0 group-hover:opacity-100 transition-opacity" />
           </a>
         </div>
 
-        <div className="w-full pt-10 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4 text-zinc-600 text-[11px] font-medium tracking-wide">
-          <p>
-            © 2024 Harmoniq. Desenvolvido por{" "}
-            <span className="text-zinc-400">JsCodeDevlopment</span>.
+        {/* Credits Section */}
+        <div className="w-full pt-12 border-t border-white/[0.03] flex flex-col md:flex-row justify-between items-center gap-8 text-zinc-700 text-[10px] font-black uppercase tracking-[0.4em]">
+          <p className="hover:text-zinc-500 transition-colors">
+            © 2024 Harmoniq. Developed by{" "}
+            <span className="text-zinc-500">JsCodeDevlopment</span>.
           </p>
-          <p>Designed for Jonatas Silva</p>
+          <div className="flex items-center gap-3">
+            <div className="h-px w-8 bg-zinc-800" />
+            <p className="hover:text-zinc-500 transition-colors">
+              Designed for Jonatas Silva
+            </p>
+          </div>
         </div>
       </div>
     </footer>
