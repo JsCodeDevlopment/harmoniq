@@ -15,6 +15,23 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: "Harmoniq | Cifras Limpas para o Louvor",
   description: "Acesse cifras de louvores sem anúncios, modo performance e transposição instantânea.",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Harmoniq",
+  },
+  formatDetection: {
+    telephone: false,
+  },
+};
+
+export const viewport = {
+  themeColor: "#000000",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 };
 
 import { ReactQueryProvider } from "@/providers/query-client-provider";
@@ -24,6 +41,7 @@ const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 
 import { Toaster } from "sonner";
+import { PWAInstallPrompt } from "@/components/pwa/pwa-install-prompt";
 
 export default function RootLayout({
   children,
@@ -39,6 +57,7 @@ export default function RootLayout({
         <ReactQueryProvider>
             {children}
             <Toaster richColors position="top-right" closeButton theme="dark" />
+            <PWAInstallPrompt />
         </ReactQueryProvider>
       </body>
     </html>

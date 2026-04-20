@@ -8,8 +8,12 @@ export function Footer() {
       <div className="max-w-7xl mx-auto flex flex-col items-center text-center">
         {/* Logo Section */}
         <div className="flex items-center gap-4 mb-10">
-          <div className="w-12 h-12 bg-yellow-500 rounded-2xl flex items-center justify-center shadow-[0_10px_30px_rgba(234,179,8,0.2)]">
-            <Music className="w-6 h-6 text-black" strokeWidth={2.5} />
+          <div className="w-12 h-12 bg-transparent rounded-2xl overflow-hidden group">
+            <img 
+              src="/logo.png" 
+              alt="Harmoniq Logo" 
+              className="w-full h-full object-contain"
+            />
           </div>
           <span className="text-3xl font-black font-outfit tracking-[-0.05em] text-white">
             Harmoniq

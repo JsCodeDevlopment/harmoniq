@@ -30,8 +30,12 @@ export function Navbar() {
           className="flex items-center gap-3 cursor-pointer group"
           onClick={() => router.push("/")}
         >
-          <div className="w-10 h-10 bg-yellow-500 rounded-xl flex items-center justify-center shadow-[0_10px_20px_rgba(234,179,8,0.2)] transition-all duration-500 group-hover:scale-110 group-hover:rotate-3">
-            <Music className="w-5 h-5 text-black" strokeWidth={2.5} />
+          <div className="w-10 h-10 bg-transparent rounded-xl overflow-hidden transition-all duration-500 group-hover:scale-110 group-hover:rotate-3">
+            <img 
+              src="/logo.png" 
+              alt="Harmoniq Logo" 
+              className="w-full h-full object-contain"
+            />
           </div>
           <span className="text-2xl font-black font-outfit tracking-[-0.05em] text-white">
             Harmoniq
