@@ -1,6 +1,6 @@
 # Harmoniq - Digital Songbook & Chord Library
 
-![](https://img.shields.io/badge/Versão-1.4.0-black?style=for-the-badge)
+![](https://img.shields.io/badge/Versão-1.5.0-black?style=for-the-badge)
 
 Plataforma moderna, intuitiva e responsiva desenvolvida para músicos que buscam profissionalismo e agilidade no gerenciamento de repertórios. O **Harmoniq** elimina a complexidade das cifras estáticas, oferecendo uma experiência dinâmica de transposição e visualização de acordes.
 
@@ -25,6 +25,7 @@ O Harmoniq foi desenhado para ser o braço direito do músico no palco e no ensa
 - **Transposição Instantânea:** Mude o tom de qualquer música com um toque, preservando as variações de acordes escolhidas.
 - **Auto-Scroll Adaptativo:** Configure a velocidade de rolagem para acompanhar a música sem precisar das mãos.
 - **Filtro de Tablaturas:** Oculte partes instrumentais com um clique para focar apenas na letra e nos acordes (Cifra Pura).
+- **Toque Também (Recomendações)**: Desvende novas músicas com um sistema de sugestões curadas baseadas no artista e gênero que você está tocando.
 - **Modo Live (Performance):** Interface otimizada (Dark Mode) para uso em palcos, com fontes ampliadas e alto contraste.
 
 ### 3. 📊 Gestão de Repertórios (Setlists)
@@ -37,6 +38,11 @@ O Harmoniq foi desenhado para ser o braço direito do músico no palco e no ensa
 
 - **Links Públicos:** Compartilhe seus repertórios com sua banda ou alunos através de links simplificados.
 - **Visualização Web:** Os membros da banda podem ver a cifra transposta em tempo real em qualquer dispositivo.
+
+### 5. 📱 Experiência de Aplicativo (PWA)
+
+- **Instalação Nativa:** Adicione o Harmoniq à sua tela inicial no iOS ou Android para usá-lo como um aplicativo real, sem barras de navegador.
+- **Acesso de Elite:** Carregamento ultra-rápido, splash screen personalizada e visualização em tela cheia para foco absoluto no seu instrumento.
 
 ---
 
@@ -54,7 +60,7 @@ O Harmoniq foi desenhado para ser o braço direito do músico no palco e no ensa
 
 ---
 
-## 📅 Histórico de Versões (v1.4.0)
+## 📅 Histórico de Versões (v1.5.0)
 
 Confira todas as melhorias e novos recursos em nosso log oficial:
 👉 **[Ver Histórico Completo em RELEASES.md](RELEASES.md)**

@@ -2,7 +2,40 @@
 
 Acompanhe as últimas melhorias, correções e novas funcionalidades da plataforma Harmoniq.
 
-## 📅 [1.4.0] - 2026-04-12 - "Foco na Performance & Limpeza Visual"
+## 📅 [1.5.0] - 2026-04-20 - "Descoberta Musical & Experiência Imersiva"
+
+Esta atualização introduz o motor de recomendações "Toque Também", transformando o Harmoniq em uma ferramenta não apenas de leitura, mas de descoberta para músicos.
+
+### 🚀 Novas Funcionalidades
+
+- **Toque Também (Recomendações)**: Implementação de um motor de sugestões curadas que exibe músicas relacionadas por gênero e estilo. O visual é inspirado em playlists de elite, com fotos de artistas em formato circular e tipografia minimalista.
+- **Visualização de Artista Premium**: As fotos dos artistas agora são tratadas com filtros de escala e cor dinâmicos, proporcionando um feedback visual luxuoso durante a navegação.
+- **Tratamento de Fallbacks**: Sistema inteligente de imagens que detecta fotos corrompidas ou inexistentes e as substitui automaticamente por placeholders oficiais do Cifra Club.
+
+### 🎨 Design & Experiência "Sensational" (Landing Page Overhaul)
+
+- **Experiência Visual de Elite**: Transformação completa da Landing Page para uma estética premium e minimalista. Cada sessão foi repaginada para oferecer um visual "sensational" que mistura editorial moderno com alta tecnologia.
+- **Hero Aceternity-Inspired**: Implementação de efeitos de iluminação avançados (`Spotlight` e `BackgroundBeams`) com física de mola que reagem ao mouse, criando um ambiente imersivo e luxuoso desde o primeiro contato.
+- **Showcase de Performance**: Novo design da sessão de interface com mockups flutuantes em fundo claro (`bg-zinc-50`), utilizando anotações em **glassmorphism** para destacar o Modo Performance.
+- **Stats Dinâmicos (Counter-Up)**: Implementação de contadores numéricos reais que animam do zero ao valor final com suavidade, fornecendo dados precisos sobre o catálogo e a performance da plataforma.
+- **Trending Cards Pro**: Componentização da sessão de tendências com cards em glassmorphism, micro-interações de play no hover e tipografia de alto impacto.
+- **Navegação Mobile Premium**: O menu mobile foi redesenhado para garantir paridade total com o desktop, permitindo acesso rápido a "Meus Repertórios" e autenticação com design de pílula pulsante.
+
+### 📱 Experiência App (Full PWA Support)
+
+- **Harmoniq Mobile App**: A plataforma agora é um **PWA (Progressive Web App)** completo. Os usuários podem instalar o Harmoniq diretamente em seus smartphones (iOS e Android), transformando o site em um aplicativo nativo com splash screen e sem barras de navegação.
+- **Smart Install Toast**: Implementado um sistema de convite para instalação inteligente no canto inferior esquerdo. O aviso é resiliente: se ignorado, ele utiliza persistência via cookies para reaparecer apenas após **7 dias**, mantendo a interface limpa.
+- **Branding Unificado**: Substituição total de ícones genéricos pelo **Logo Oficial do Harmoniq** em toda a interface (Navbar, Footer, CTA e Manifest), garantindo uma experiência de marca coesa do browser à tela inicial do celular.
+
+### 🛠️ Melhorias Técnicas
+
+- **Scraper de Elite (V2)**: O crawler do backend foi totalmente reescrito para identificar com precisão a estrutura `.playToo` do Cifra Club, permitindo extrair dados mais variados e em alta resolução.
+- **Otimização com Next.js Image**: Migração total das miniaturas de recomendações para o componente `<Image />` do Next.js. Isso garante carregamento sob demanda, compressão automática e melhor performance no mobile.
+- **Configuração de Domínios Remotos**: Atualização do `next.config.ts` para suportar nativamente os domínios de mídia do Cifra Club (`sscdn.co`, `studiosol.com.br`), permitindo processamento de imagens externas com segurança.
+
+---
+
+## 📅 [1.4.0] - 2026-04-12
 
 Esta atualização atende a um dos pedidos mais frequentes dos músicos que buscam uma leitura limpa durante o show, permitindo focar exclusivamente na letra e nos acordes sem distrações técnicas.
 
