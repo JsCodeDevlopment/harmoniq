@@ -13,6 +13,10 @@ export interface Song {
   simplified_url?: string;
   principal_url?: string;
   keyboard_url?: string;
+  versions: {
+    name: string;
+    url: string;
+  }[];
   recommendations: {
     title: string;
     artist: string;

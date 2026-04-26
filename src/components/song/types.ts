@@ -20,6 +20,7 @@ export interface Setlist {
 export interface SongHeaderProps {
   title?: string;
   artist?: string;
+  artistImage?: string;
   url: string;
   setlistId: string | null;
   showSettings: boolean;
@@ -41,6 +42,7 @@ export interface SongHeaderProps {
   simplifiedUrl?: string;
   principalUrl?: string;
   keyboardUrl?: string;
+  versions?: { name: string; url: string }[];
   currentUrl: string;
   onVersionChange?: (url: string) => void;
   showTabs: boolean;
@@ -67,6 +69,7 @@ export interface SongUtilityBarProps {
   simplifiedUrl?: string;
   principalUrl?: string;
   keyboardUrl?: string;
+  versions?: { name: string; url: string }[];
   currentUrl: string;
   onVersionChange: (url: string) => void;
   // Settings props

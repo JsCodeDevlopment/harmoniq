@@ -416,6 +416,7 @@ export function SongViewer() {
         <SongHeader
           title={song?.title}
           artist={song?.artist}
+          artistImage={song?.image}
           url={url}
           setlistId={setlistId}
           showSettings={showSettings}
@@ -436,6 +437,7 @@ export function SongViewer() {
           simplifiedUrl={song?.simplified_url}
           principalUrl={song?.principal_url}
           keyboardUrl={song?.keyboard_url}
+          versions={song?.versions}
           currentUrl={url}
           onVersionChange={handleVersionChange}
           showTabs={showTabs}
@@ -487,6 +489,7 @@ export function SongViewer() {
             simplifiedUrl={song?.simplified_url}
             principalUrl={song?.principal_url}
             keyboardUrl={song?.keyboard_url}
+            versions={song?.versions}
             currentUrl={url}
             onVersionChange={handleVersionChange}
             localFontSize={localFontSize}
