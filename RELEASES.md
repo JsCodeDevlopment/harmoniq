@@ -2,7 +2,26 @@
 
 Acompanhe as últimas melhorias, correções e novas funcionalidades da plataforma Harmoniq.
 
-## 📅 [1.5.0] - 2026-04-20 - "Descoberta Musical & Experiência Imersiva"
+## 📅 [1.6.0] - 2026-04-26 - "Identidade Visual & Compactação Extrema"
+ 
+Esta atualização traz um novo nível de profissionalismo visual com a introdução de fotos de artistas e um sistema de versões expandido, além de uma otimização radical de espaço na interface desktop.
+
+### 🚀 Novas Funcionalidades
+
+- **Suporte Total a Múltiplas Versões**: Agora o Harmoniq identifica e permite alternar entre **todas** as versões de uma música disponíveis no Cifra Club (Principal, Simplificada, Versão 3, 4, etc.). O menu "Mais..." inteligente organiza as versões secundárias de forma limpa.
+- **Identidade Visual (Foto de Perfil)**: Integrada a foto oficial do artista no cabeçalho da música. O avatar circular premium com sombra suave traz uma experiência mais imersiva e profissional.
+- **Barra de Utilidades Ultra-Compacta**: Redesenho total da barra de ferramentas desktop para maximizar a área de leitura. Redução de ~40% na altura total através de tipografia densa e espaçamentos atômicos.
+- **Scroll Dinâmico no Mobile**: Reintrodução do botão de "Auto Scroll" na linha principal da barra mobile, atendendo ao pedido de músicos que precisam de acesso rápido durante a performance.
+
+### 🛠️ Melhorias Técnicas
+
+- **Scraper de Versões (V3)**: Backend reescrito para limpar metadados concatenados (dificuldade, visualizações, contribuidores) dos links do Cifra Club, entregando nomes padronizados como "Versao-3".
+- **Otimização de Espaço (UI)**: Migração para escalas de `8.5px` e `9px` na barra de utilidades, utilizando grids de 2 linhas otimizadas para evitar sobreposição de elementos.
+- **Robustez de Dados**: Atualização do DTO de músicas para suportar campos de imagem e múltiplas versões de forma tipada e segura.
+
+---
+
+ ## 📅 [1.5.0] - 2026-04-20 - "Descoberta Musical & Experiência Imersiva"
 
 Esta atualização introduz o motor de recomendações "Toque Também", transformando o Harmoniq em uma ferramenta não apenas de leitura, mas de descoberta para músicos.
 
