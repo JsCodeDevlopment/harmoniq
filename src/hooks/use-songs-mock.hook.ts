@@ -8,6 +8,9 @@ export interface Song {
   key: string;
   content: string;
   chords: string[];
+  image?: string;
+  versions?: { name: string; url: string }[];
+  recommendations?: any[];
 }
 
 export function useSearchSongsMock(query: string) {

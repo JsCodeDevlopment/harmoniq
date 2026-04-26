@@ -23,6 +23,7 @@ export interface Song {
     url: string;
     image?: string;
   }[];
+  image?: string;
 }
 
 
